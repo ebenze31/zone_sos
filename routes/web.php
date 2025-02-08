@@ -25,4 +25,10 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::middleware(['auth', 'role:admin_zone'])->group(function () {
     Route::get('/admin_home', 'AdminController@admin_home');
+
 });
+
+Route::get('before_video_call/', 'VideoCallController@before_video_call'); // index
+Route::get('video_call_pc/', 'VideoCallController@video_call_pc'); // index
+
+
