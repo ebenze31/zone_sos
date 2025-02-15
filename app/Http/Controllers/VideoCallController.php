@@ -41,4 +41,11 @@ class VideoCallController extends Controller
         return view('agora_video_call/video_call_pc', compact('type'));
 
     }
+
+    public function video_call_mobile(Request $request){
+        $type = "zone_sos";
+
+        return view('agora_video_call/video_call_mobile', compact('type'));
+
+    }
 }

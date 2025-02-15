@@ -30,5 +30,7 @@ Route::middleware(['auth', 'role:admin_zone'])->group(function () {
 
 Route::get('before_video_call/', 'VideoCallController@before_video_call'); // index
 Route::get('video_call_pc/', 'VideoCallController@video_call_pc'); // index
+Route::get('video_call_mobile/', 'VideoCallController@video_call_mobile'); // index
+
 
 
