@@ -1,0 +1,16 @@
+{
+    "fields": [
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "zone_partner_id",
+            "type": "string"
+        },
+        {
+            "name": "zone_area_id",
+            "type": "string"
+        }
+    ]
+}

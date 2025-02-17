@@ -1,0 +1,65 @@
+{
+    "fields": [
+        {
+            "name": "name",
+            "type": "string"
+        },
+        {
+            "name": "full_name",
+            "type": "string"
+        },
+        {
+            "name": "phone",
+            "type": "string"
+        },
+        {
+            "name": "type_partner",
+            "type": "string"
+        },
+        {
+            "name": "mail",
+            "type": "string"
+        },
+        {
+            "name": "logo",
+            "type": "string"
+        },
+        {
+            "name": "color_ci_1",
+            "type": "string"
+        },
+        {
+            "name": "color_ci_2",
+            "type": "string"
+        },
+        {
+            "name": "color_ci_3",
+            "type": "string"
+        },
+        {
+            "name": "province",
+            "type": "string"
+        },
+        {
+            "name": "district",
+            "type": "string"
+        },
+        {
+            "name": "sub_district",
+            "type": "string"
+        },
+        {
+            "name": "sub_area",
+            "type": "string"
+        },
+        {
+            "name": "show_homepage",
+            "type": "string"
+        },
+        {
+            "name": "max_polygon_area",
+            "type": "string"
+        }
+
+    ]
+}

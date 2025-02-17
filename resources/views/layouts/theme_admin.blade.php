@@ -408,6 +408,15 @@
 										<i class="bx bx-right-arrow-alt"></i>แจ้งปัญหาการใช้งาน
 									</a>
 								</li>
+								@if(Auth::check())
+									@if( Auth::user()->id == '1' || Auth::user()->id == '64' || Auth::user()->id == '11003429'  )
+										<li>
+											<a href="{{ url('/create_zone_partner') }}" class="sub-menu text-danger">
+												<i class="bx bx-right-arrow-alt"></i>Create Partner (For Dev)
+											</a>
+										</li>
+									@endif
+								@endif
 							</ul>
 						</li>
 					</ul>

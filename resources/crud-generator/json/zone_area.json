@@ -1,0 +1,45 @@
+{
+    "fields": [
+        {
+            "name": "name_zone_area",
+            "type": "string"
+        },
+        {
+            "name": "polygon_area",
+            "type": "string"
+        },
+        {
+            "name": "zone_partner_id",
+            "type": "string"
+        },
+        {
+            "name": "creator",
+            "type": "string"
+        },
+        {
+            "name": "check_send_to",
+            "type": "string"
+        },
+        {
+            "name": "group_line_id",
+            "type": "string"
+        },
+        {
+            "name": "last_edit_polygon_user_id",
+            "type": "string"
+        },
+        {
+            "name": "last_edit_polygon_time",
+            "type": "string"
+        },
+        {
+            "name": "old_polygon_area",
+            "type": "string"
+        },
+        {
+            "name": "old_edit_polygon_user_id",
+            "type": "string"
+        }
+
+    ]
+}

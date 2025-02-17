@@ -17,8 +17,10 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 
-Auth::routes();
+// ROLE
+// - admin_zone
 
+Auth::routes();
 
 Route::get('/', 'HomeController@index');
 Route::get('/home', 'HomeController@index')->name('home');
@@ -33,4 +35,16 @@ Route::get('video_call_pc/', 'VideoCallController@video_call_pc'); // index
 Route::get('video_call_mobile/', 'VideoCallController@video_call_mobile'); // index
 
 
+Route::resource('zone_agora_chats', 'Zone_agora_chatsController');
+Route::resource('zone_data_officer_commands', 'Zone_data_officer_commandsController');
+Route::resource('zone_data_operating_officers', 'Zone_data_operating_officersController');
+Route::resource('zone_data_operating_units', 'Zone_data_operating_unitsController');
+Route::resource('zone_partners', 'Zone_partnersController');
+Route::resource('zone_area', 'Zone_areaController');
 
+
+// FOR DEV //
+Route::middleware(['auth', 'role:admin_zone'])->group(function () {
+    Route::get('/create_zone_partner', 'FordevController@create_zone_partner');
+});
+// END FOR DEV //
