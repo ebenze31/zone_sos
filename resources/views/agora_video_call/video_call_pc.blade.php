@@ -2,7 +2,7 @@
 
 @section('content')
     <style>
-        body,
+        /* body,
         html {
             height: 100%;
             margin: 0;
@@ -10,7 +10,6 @@
             background-color: #918e8e
         }
 
-        /* ปรับขนาด Container ตาม Sidebar */
         .container {
             display: flex;
             height: calc(100vh - 80px);
@@ -36,34 +35,86 @@
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            /* กระจายพื้นที่ให้เหมาะสม */
             width: 100%;
             height: 100%;
+            transition: transform 0.4s ease, width 0.4s ease;
+        } */
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background-color: #918e8e;
+        }
+
+        .container {
+            flex-grow: 1;
+            display: flex;
+            position: relative;
+            height: calc(100vh - 80px);
+            width: 100%;
+            max-width: 100%;
+            padding-right: var(--bs-gutter-x, 0.75rem);
+            padding-left: var(--bs-gutter-x, 0.75rem);
+            margin-right: auto;
+            margin-left: auto;
+            transition: margin-left 0.4s ease, width 0.4s ease;
+            min-height: 0;
+            margin-top: 0.5rem;
+        }
+
+        .controls-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .main-video-container {
+            position: relative;
+            width: 100%;
+            height: calc(100vh - 150px);
+            background-color: #222;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-wrapper {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.4s ease, width 0.4s ease;
         }
 
         .video-container {
             display: grid;
             gap: 10px;
-            /* width: 100%;
-            height: 100%; */
-            max-height: calc(100vh - 150px);
-            overflow: hidden;
-            justify-items: center;
-            align-items: center;
-            padding: 5px;
+            width: 100%;
+            height: 100%;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* จัดคอลัมน์ */
+            grid-template-rows: auto; /* ใช้ auto เพื่อให้แถวมีขนาดยืดหยุ่น */
+            max-height: 100%; /* จำกัดความสูงไม่ให้เกิน */
+            overflow: hidden; /* ไม่ให้ล้น */
         }
 
-        /* ปรับขนาดวิดีโอ */
         .video-container .video-card {
-            aspect-ratio: 16 / 9;
-            /* สัดส่วนวิดีโอ */
-            border-radius: 5px;
             background-color: #4d4d4d;
+            border-radius: 5px;
             position: relative;
-            width: 100%;
-            max-width: 100%;
-            flex-shrink: 0;
-            transition: width 0.2s ease, height 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
         }
 
         /* กรณีมี 1 วิดีโอ: ขยายเต็ม */
@@ -71,9 +122,20 @@
             grid-template-columns: 1fr;
         }
 
+        .video-container:has(.video-card:only-child) .video-card {
+            width: 100%;
+            height: 100%;
+        }
+
         /* กรณีมี 2 วิดีโอ: แบ่งเป็น 50% */
         .video-container:has(.video-card:nth-child(1):nth-last-child(2)) {
             grid-template-columns: repeat(2, 1fr);
+        }
+
+        .video-container:has(.video-card:nth-child(1):nth-last-child(2)) .video-card {
+            width: 100%;
+            height: 50%;
+            align-self: center;
         }
 
         /* กรณีมี 3 แบ่งเป็น 2 แถว */
@@ -81,6 +143,7 @@
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(2, 1fr);
         }
+
         .video-container:has(.video-card:nth-child(1):nth-last-child(3)) .video-card:nth-child(1) {
             grid-column: 1;
         }
@@ -94,13 +157,13 @@
             grid-row: 2;
         }
 
-        /* กรณีมี 4 แบ่ง บน ล่าง ซ้าย ขวา*/
+        /* กรณีมี 4 แบ่ง บน ล่าง ซ้าย ขวา */
         .video-container:has(.video-card:nth-child(1):nth-last-child(4)) {
             grid-template-columns: repeat(2, 1fr);
             grid-template-rows: repeat(2, 1fr);
         }
 
-        /*--------- กรณีมี 5 วิดีโอ: -----------*/
+        /* กรณีมี 5 วิดีโอ */
         .video-container:has(.video-card:nth-child(1):nth-last-child(5)) {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -130,27 +193,22 @@
             grid-row: 2;
         }
 
-        /*-------------- กรณีมี 6 วิดีโอ: ---------------*/
+        /* กรณีมี 6 วิดีโอ */
         .video-container:has(.video-card:nth-child(1):nth-last-child(6)) {
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: auto auto;
         }
 
-        .video-container:has(.video-card:nth-child(1):nth-last-child(n+5)) .video-card {
-            width: 100%;
-            /* ลดขนาดเพื่อให้พอดีกับ container */
-        }
-
-        /*---------- กรณีมี 7 วิดีโอขึ้นไป: แบ่งเป็น 3 คอลัมน์ 3 แถว ----------*/
+        /* กรณีมี 7 วิดีโอขึ้นไป */
         .video-container:has(.video-card:nth-child(1):nth-last-child(n+7)) {
             grid-template-columns: repeat(3, 1fr);
             grid-template-rows: auto;
         }
 
         .video-container:has(.video-card:nth-child(1):nth-last-child(n+7)) .video-card {
-            width: 95%;
-            /* ลดขนาดลงอีกเมื่อมี 7+ วิดีโอ */
+            width: 95%; /* ลดขนาดลงเมื่อมี 7+ วิดีโอ */
         }
+
 
 
         /* .video-card.hidden {
@@ -162,11 +220,9 @@
             gap: 10px;
             width: 100%;
             flex-wrap: wrap;
-            /* ป้องกัน overflow */
             justify-content: center;
             padding: 10px;
             position: relative;
-            /* background: rgba(0, 0, 0, 0.5); */
             z-index: 1000;
         }
 
@@ -174,12 +230,9 @@
         /* ปรับขนาด video card ให้อยู่ใน bar โดยไม่ให้เกินขอบ */
         .video-bar .video-card {
             width: min(150px, 15%);
-            /* ปรับขนาดวิดีโออัตโนมัติ */
             height: auto;
             aspect-ratio: 3 / 2;
-            /* คงอัตราส่วน */
             flex-shrink: 1;
-            /* ย่อขนาดเมื่อพื้นที่ไม่พอ */
             cursor: pointer;
             transition: transform 0.2s;
             border-radius: 5px;
@@ -210,11 +263,8 @@
         /* เมื่อ Sidebar เปิด */
         .sidebar.open~.container {
             margin-left: 333px;
-            /* ดัน Container ไปทางขวา */
             width: calc(100vw - 333px);
-            /* ลดขนาดของ container เมื่อ Sidebar เปิด */
             max-width: calc(100vw - 333px);
-            /* กำหนด max-width ให้เหมาะสมเมื่อ Sidebar เปิด */
         }
 
 
@@ -226,7 +276,7 @@
             width: 333px;
             height: 100%;
             background-color: #444;
-            transition: left 0.4s;
+            transition: left 0.2s;
             z-index: 10;
         }
 
@@ -238,20 +288,6 @@
         .container.shifted {
             width: calc(100% - 333px);
             margin-left: 333px;
-        }
-
-        /* Controls Bar */
-        .controls-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background-color: #333;
-            padding: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 2000;
         }
 
         .toggleButton {
@@ -267,6 +303,7 @@
             font-size: 20px;
         }
 
+
         /*-------- ปุ่มซ่อน/แสดง video-bar ----------*/
 
         /* เมื่อ Video Bar ถูกซ่อน */
@@ -275,8 +312,7 @@
             display: none;
         }
 
-       /* ปุ่มซ่อน/แสดง (เปิดอยู่) */
-        .toggle-video-bar-btn {
+        /* .toggle-video-bar-btn {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
@@ -290,10 +326,9 @@
             transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
         }
 
-        /* ปุ่มปิด (ซ่อน video-bar อยู่) */
         .toggle-video-bar-btn-close {
             position: absolute;
-            bottom: 4.5rem; /* ซ่อน video-bar ให้ปุ่มอยู่ต่ำลงมา */
+            bottom: 4.5rem;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(255, 255, 255, 0.8);
@@ -304,6 +339,26 @@
             cursor: pointer;
             z-index: 1500;
             transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
+        } */
+
+        /* ปุ่มซ่อน/แสดง (เปิดอยู่) */
+        .toggle-video-bar-btn {
+            border-radius: 50%;
+            width: 45px !important;
+            height: 45px !important;
+            border: 1px solid rgb(88, 88, 88);
+            background-color: rgba(138, 138, 138, 0.6);
+            color: #ffffff;
+        }
+
+        /* ปุ่มปิด (ซ่อน video-bar อยู่) */
+        .toggle-video-bar-btn-close {
+            border-radius: 50%;
+            width: 45px !important;
+            height: 45px !important;
+            border: 1px solid rgb(88, 88, 88);
+            background-color: rgba(138, 138, 138, 0.6);
+            color: #ffffff;
         }
 
         /* ไอคอนหมุนขึ้น */
@@ -319,21 +374,20 @@
 
 
     </style>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
 
+    </div>
     <div class="container" id="mainContainer">
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-
-        </div>
 
         <div class="video-wrapper">
             <!-- Video Container -->
             <div class="video-container" id="video-container" data-count="1"></div>
 
             <!-- ปุ่มซ่อน/แสดง Video Bar -->
-            <button class="toggle-video-bar-btn d-none" id="toggleVideoBarBtn" onclick="toggleVideoBar()">
+            {{-- <button class="toggle-video-bar-btn d-none" id="toggleVideoBarBtn" onclick="toggleVideoBar()">
                 <i class="fa-solid fa-chevron-down"></i>
-            </button>
+            </button> --}}
             <!-- Video Bar (Bottom) -->
             <div class="video-bar" id="video-bar">
 
@@ -348,6 +402,9 @@
         <div class="left">
             <button class="toggleButton mx-2" id="sidebarBtn" onclick="toggleSidebar()">
                 <i class="fa-solid fa-sidebar"></i>
+            </button>
+            <button class="toggle-video-bar-btn d-none mx-2" id="toggleVideoBarBtn" onclick="toggleVideoBar()">
+                <i class="fa-solid fa-chevron-down"></i>
             </button>
         </div>
         <div class="center">
