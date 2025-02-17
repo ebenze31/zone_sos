@@ -2,43 +2,6 @@
 
 @section('content')
     <style>
-        /* body,
-        html {
-            height: 100%;
-            margin: 0;
-            overflow: hidden;
-            background-color: #918e8e
-        }
-
-        .container {
-            display: flex;
-            height: calc(100vh - 80px);
-            width: 100%;
-            max-width: 74%;
-            padding-right: var(--bs-gutter-x, 0.75rem);
-            padding-left: var(--bs-gutter-x, 0.75rem);
-            margin-right: auto;
-            margin-left: auto;
-        }
-
-        .main-video-container {
-            width: 100%;
-            height: calc(100vh - 150px);
-            background-color: #222;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: all 0.3s ease-in-out;
-        }
-
-        .video-wrapper {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-around;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.4s ease, width 0.4s ease;
-        } */
 
         body,
         html {
@@ -52,7 +15,7 @@
             flex-grow: 1;
             display: flex;
             position: relative;
-            height: calc(100vh - 80px);
+            height: calc(100vh - 90px);
             width: 100%;
             max-width: 100%;
             padding-right: var(--bs-gutter-x, 0.75rem);
@@ -88,6 +51,7 @@
         }
 
         .video-wrapper {
+            position: relative;
             display: flex;
             flex-direction: column;
             justify-content: space-around;
@@ -312,37 +276,35 @@
             display: none;
         }
 
-        /* .toggle-video-bar-btn {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8);
-            color: black;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 1500;
-            transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
-        }
-
-        .toggle-video-bar-btn-close {
-            position: absolute;
-            bottom: 4.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.8);
-            color: black;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 50%;
-            cursor: pointer;
-            z-index: 1500;
-            transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
-        } */
-
-        /* ปุ่มซ่อน/แสดง (เปิดอยู่) */
         .toggle-video-bar-btn {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1500;
+            transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        .toggle-video-bar-btn-close {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.8);
+            color: black;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1500;
+            transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        /* .toggle-video-bar-btn {
             border-radius: 50%;
             width: 45px !important;
             height: 45px !important;
@@ -351,7 +313,6 @@
             color: #ffffff;
         }
 
-        /* ปุ่มปิด (ซ่อน video-bar อยู่) */
         .toggle-video-bar-btn-close {
             border-radius: 50%;
             width: 45px !important;
@@ -359,7 +320,7 @@
             border: 1px solid rgb(88, 88, 88);
             background-color: rgba(138, 138, 138, 0.6);
             color: #ffffff;
-        }
+        } */
 
         /* ไอคอนหมุนขึ้น */
         .toggle-video-bar-btn i {
@@ -385,9 +346,9 @@
             <div class="video-container" id="video-container" data-count="1"></div>
 
             <!-- ปุ่มซ่อน/แสดง Video Bar -->
-            {{-- <button class="toggle-video-bar-btn d-none" id="toggleVideoBarBtn" onclick="toggleVideoBar()">
+            <button class="toggle-video-bar-btn d-none" id="toggleVideoBarBtn" onclick="toggleVideoBar()">
                 <i class="fa-solid fa-chevron-down"></i>
-            </button> --}}
+            </button>
             <!-- Video Bar (Bottom) -->
             <div class="video-bar" id="video-bar">
 
@@ -403,9 +364,9 @@
             <button class="toggleButton mx-2" id="sidebarBtn" onclick="toggleSidebar()">
                 <i class="fa-solid fa-sidebar"></i>
             </button>
-            <button class="toggle-video-bar-btn d-none mx-2" id="toggleVideoBarBtn" onclick="toggleVideoBar()">
+            {{-- <button class="toggle-video-bar-btn d-none mx-2" id="toggleVideoBarBtn" onclick="toggleVideoBar()">
                 <i class="fa-solid fa-chevron-down"></i>
-            </button>
+            </button> --}}
         </div>
         <div class="center">
             <button class="toggleButton mx-2" id="muteBtn" onclick="toggleMute()"><i
@@ -581,7 +542,7 @@
                 }
             } else if (toggleBtn.classList.contains('toggle-video-bar-btn-close')) {
                 toggleBtn.style.top = 'auto';
-                toggleBtn.style.bottom = '4.5rem';
+                toggleBtn.style.bottom = '-0.8rem';
             }
         }
 
