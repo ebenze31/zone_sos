@@ -32,7 +32,7 @@ class VideoCallController extends Controller
             $type_brand = "pc";
         }
 
-        return view('agora_video_call/before_video_call', compact('user','type','type_brand','type_device'));
+        return view('agora_video_call/before_video_call', compact('user','sos_id','type','type_brand','type_device'));
     }
 
     public function video_call_pc(Request $request){
