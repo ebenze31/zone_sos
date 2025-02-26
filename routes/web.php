@@ -31,8 +31,9 @@ Route::middleware(['auth', 'role:admin_zone'])->group(function () {
 });
 
 Route::get('before_video_call/', 'VideoCallController@before_video_call'); // index
-Route::get('video_call_pc/', 'VideoCallController@video_call_pc'); // index
-Route::get('video_call_mobile/', 'VideoCallController@video_call_mobile'); // index
+Route::get('pc_video_call/{type}/{sos_id}', 'VideoCallController@video_call_pc'); // index
+Route::get('mobile_video_call/{type}/{sos_id}', 'VideoCallController@video_call_mobile'); // index
+Route::get('after_video_call', 'VideoCallController@after_video_call'); // index
 
 
 Route::resource('zone_agora_chats', 'Zone_agora_chatsController');

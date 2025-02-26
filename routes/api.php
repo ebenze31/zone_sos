@@ -17,3 +17,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::get('/check_user_in_room', 'VideoCallController@check_user_in_room');
+Route::get('/video_call_token', 'VideoCallController@token');
+Route::get('/get_local_data', 'VideoCallController@get_local_data');
+Route::get('/join_room', 'VideoCallController@join_room');
+
+

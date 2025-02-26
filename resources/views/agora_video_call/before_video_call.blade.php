@@ -185,7 +185,8 @@
         var appId = '{{ env('AGORA_APP_ID') }}';
         var appCertificate = '{{ env('AGORA_APP_CERTIFICATE') }}';
 
-        var sos_id = '';
+        var sos_id = '{{ $sos_id }}';
+        var type_sos = '{{ $type }}';
 
         var selectedMicrophone = null;
         var selectedCamera = null;
@@ -206,12 +207,16 @@
                 agoraAppId = '{{ config('agora.app_id') }}';
                 agoraAppCertificate = '{{ config('agora.app_certificate') }}';
             }
-            console.log(agoraAppId);
-            console.log(agoraAppCertificate);
 
             // await getDevices();
             // เรียกฟังก์ชันเพื่อรับรายการอุปกรณ์
             await getDeviceList();
+
+            Check_video_call_room(); // เรียกฟังก์ชันทันทีเมื่อหน้าโหลด
+            setInterval(() => {
+                Check_video_call_room();
+            }, 5000); // เรียกซ้ำทุก ๆ 5 วินาที
+
         });
 
         // ฟังก์ชันในการขอสิทธิ์การเข้าถึงอุปกรณ์
@@ -617,6 +622,124 @@
 
         // หยุดไมโครโฟนเมื่อปิดหน้า
         window.addEventListener('beforeunload', stopMicrophone);
+
+
+        function Check_video_call_room(){
+
+            fetch("{{ url('/') }}/api/check_user_in_room" + "?sos_id=" + sos_id + "&type=" + type_sos)
+            .then(response => response.json())
+            .then(result => {
+
+                if(result['status'] === "ok"){
+                    // console.log("user_in_room");
+                    // console.log(result);
+
+                    document.querySelector('#btnJoinRoom').classList.remove('d-none');
+                    document.querySelector('#full_room').classList.add('d-none');
+
+                    if (result['data'] != "ไม่มีข้อมูล") {
+                        let avatar_div = document.querySelector('#avatars');
+                        avatar_div.innerHTML = '';
+                        result['data'].forEach(element => {
+                            let profile_user;
+                            if (element.photo) {
+                                // profile_user = "{{ url('/storage') }}" + "/" + element.photo;
+                                profile_user = "https://www.viicheck.com" + "/" + element.photo;
+                            } else if (!element.photo && element.avatar) {
+                                profile_user = element.avatar;
+                            } else {
+                                profile_user = "https://www.viicheck.com/Medilab/img/icon.png";
+                            }
+                            console.log(profile_user);
+                            let html = `<span class="avatar">
+                                            <img src="` + profile_user + `">
+                                        </span>`;
+
+                            avatar_div.insertAdjacentHTML('beforeend', html);
+                        });
+
+                        let html_2;
+                        if (result['data'].length > 1) {
+                            html_2 = `<h6 class="w-100 text_for_device">${result['data'][0].name} และอีก ${result['data'].length - 1} คนในห้องสนทนา</h6>`;
+                        } else if (result['data'].length === 1) {
+                            html_2 = `<h6 class="w-100 text_for_device">${result['data'][0].name} อยู่ในห้องสนทนา</h6>`;
+                        } else {
+                            // Handle the case where there are no users
+                            html_2 = `<h6 class="w-100 text_for_device">ไม่มีคนอยู่ในห้องสนทนา</h6>`;
+                        }
+
+                        let text_user_in_room = document.querySelector('#text_user_in_room');
+                        text_user_in_room.innerHTML = '';
+                        // Handle the case where there are no users
+                        text_user_in_room.insertAdjacentHTML('beforeend', html_2);
+
+                    }else{
+                        let avatar_div = document.querySelector('#avatars');
+                        avatar_div.innerHTML = '';
+
+                        let text_user_in_room = document.querySelector('#text_user_in_room');
+                        text_user_in_room.innerHTML = '';
+                        // Handle the case where there are no users
+                        let html_2 = `<h6 class="w-100 text_for_device">ไม่มีคนอยู่ในห้องสนทนา</h6>`;
+                        text_user_in_room.insertAdjacentHTML('beforeend', html_2);
+                    }
+
+                }else{
+
+                    document.querySelector('#btnJoinRoom').classList.add('d-none');
+                    document.querySelector('#full_room').classList.remove('d-none');
+
+                    if (result['data'] != "ไม่มีข้อมูล") {
+                        let avatar_div = document.querySelector('#avatars');
+                        avatar_div.innerHTML = '';
+                        result['data'].forEach(element => {
+                            let profile_user;
+                            if (element.photo) {
+                                // profile_user = "{{ url('/storage') }}" + "/" + element.photo;
+                                profile_user = "https://www.viicheck.com" + "/" + element.photo;
+                            } else if (!element.photo && element.avatar) {
+                                profile_user = element.avatar;
+                            } else {
+                                profile_user = "https://www.viicheck.com/Medilab/img/icon.png";
+                            }
+
+                            let html = `<span class="avatar">
+                                            <img src="` + profile_user + `">
+                                        </span>`;
+
+                            avatar_div.insertAdjacentHTML('beforeend', html);
+                        });
+
+                        let html_2;
+                        if (result['data'].length > 1) {
+                            html_2 = `<span class="w-100 text_for_device">${result['data'][0].name} และอีก ${result['data'].length - 1} คนในห้องสนทนา</span>`;
+                        } else if (result['data'].length === 1) {
+                            html_2 = `<span class="w-100 text_for_device">${result['data'][0].name} อยู่ในห้องสนทนา</span>`;
+                        } else {
+                            // Handle the case where there are no users
+                            html_2 = `<span class="w-100 text_for_device">ไม่มีคนอยู่ในห้องสนทนา</span>`;
+                        }
+
+                        let text_user_in_room = document.querySelector('#text_user_in_room');
+                        text_user_in_room.innerHTML = '';
+                        // Handle the case where there are no users
+                        text_user_in_room.insertAdjacentHTML('beforeend', html_2);
+
+                    }else{
+                        let avatar_div = document.querySelector('#avatars');
+                        avatar_div.innerHTML = '';
+
+                        let text_user_in_room = document.querySelector('#text_user_in_room');
+                        text_user_in_room.innerHTML = '';
+                        // Handle the case where there are no users
+                        let html_2 = `<span class="w-100 text_for_device">ไม่มีคนอยู่ในห้องสนทนา</span>`;
+                        text_user_in_room.insertAdjacentHTML('beforeend', html_2);
+                    }
+
+                }
+
+            });
+        }
 
     </script>
 

@@ -1,0 +1,426 @@
+
+body,
+html {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background-color: rgba(56, 55, 55, 0.5);
+}
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    position: relative;
+    height: calc(100vh - 90px);
+    width: 100%;
+    max-width: 100%;
+    padding-right: var(--bs-gutter-x, 0.75rem);
+    padding-left: var(--bs-gutter-x, 0.75rem);
+    margin-right: auto;
+    margin-left: auto;
+    transition: margin-left 0.4s ease, width 0.4s ease;
+    min-height: 0;
+    margin-top: 0.5rem;
+}
+
+.controls-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #333;
+    padding: 10px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 2000;
+}
+
+.main-video-container {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 150px);
+    background-color: #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.video-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.4s ease, width 0.4s ease;
+}
+
+.video-container {
+    display: grid;
+    gap: 10px;
+    width: 100%;
+    height: 100%;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); /* จัดคอลัมน์ */
+    grid-template-rows: auto; /* ใช้ auto เพื่อให้แถวมีขนาดยืดหยุ่น */
+    max-height: 100%; /* จำกัดความสูงไม่ให้เกิน */
+    overflow: hidden; /* ไม่ให้ล้น */
+}
+
+.video-container .video-card {
+    background-color: #4d4d4d;
+    border-radius: 5px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+/* กรณีมี 1 วิดีโอ: ขยายเต็ม */
+.video-container:has(.video-card:only-child) {
+    grid-template-columns: 1fr;
+}
+
+.video-container:has(.video-card:only-child) .video-card {
+    width: 100%;
+    height: 100%;
+}
+
+/* กรณีมี 2 วิดีโอ: แบ่งเป็น 50% */
+.video-container:has(.video-card:nth-child(1):nth-last-child(2)) {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.video-container:has(.video-card:nth-child(1):nth-last-child(2)) .video-card {
+    width: 100%;
+    height: 50%;
+    align-self: center;
+}
+
+/* กรณีมี 3 แบ่งเป็น 2 แถว */
+.video-container:has(.video-card:nth-child(1):nth-last-child(3)) {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.video-container:has(.video-card:nth-child(1):nth-last-child(3)) .video-card:nth-child(1) {
+    grid-column: 1;
+}
+.video-container:has(.video-card:nth-child(1):nth-last-child(3)) .video-card:nth-child(2) {
+    grid-column: 2;
+}
+.video-container:has(.video-card:nth-child(1):nth-last-child(3)) .video-card:nth-child(3) {
+    grid-column: 1 / span 2;
+    justify-self: center;
+    width: 50%;
+    grid-row: 2;
+}
+
+/* กรณีมี 4 แบ่ง บน ล่าง ซ้าย ขวา */
+.video-container:has(.video-card:nth-child(1):nth-last-child(4)) {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+/* กรณีมี 5 วิดีโอ */
+.video-container:has(.video-card:nth-child(1):nth-last-child(5)) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.video-container:has(.video-card:nth-child(1):nth-last-child(5)) .video-card:nth-child(1) {
+    grid-column: 1;
+}
+.video-container:has(.video-card:nth-child(1):nth-last-child(5)) .video-card:nth-child(2) {
+    grid-column: 2;
+}
+.video-container:has(.video-card:nth-child(1):nth-last-child(5)) .video-card:nth-child(3) {
+    grid-column: 3;
+}
+.video-container:has(.video-card:nth-child(1):nth-last-child(5)) .video-card:nth-child(4) {
+    grid-column: 1 / span 2;
+    justify-self: center;
+    width: 50%;
+    grid-row: 2;
+}
+.video-container:has(.video-card:nth-child(1):nth-last-child(5)) .video-card:nth-child(5) {
+    grid-column: 2 / span 2;
+    justify-self: center;
+    width: 50%;
+    grid-row: 2;
+}
+
+/* กรณีมี 6 วิดีโอ */
+.video-container:has(.video-card:nth-child(1):nth-last-child(6)) {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+}
+
+/*----------------- กรณีมี 7 วิดีโอ -------------------*/
+.video-container:has(.video-card:nth-child(1):nth-last-child(7)) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 คอลัมน์ */
+    grid-template-rows: repeat(3, 1fr); /* 3 แถว ขนาดเท่ากัน */
+    gap: 10px;
+}
+
+/* ปรับ div ที่ 7 ให้อยู่ตรงกลางของแถวที่ 3 */
+.video-container:has(.video-card:nth-child(1):nth-last-child(7)) .video-card:nth-child(7) {
+    grid-column: 2;
+    grid-row: 3;
+    align-self: center;
+    height: 100%;
+}
+
+
+/*----------------- กรณีมี 8 วิดีโอ -------------------*/
+.video-container:has(.video-card:nth-child(1):nth-last-child(8)) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 คอลัมน์ */
+    grid-template-rows: repeat(3, 1fr); /* 3 แถว ขนาดเท่ากัน */
+    gap: 10px;
+}
+
+/* ปรับขนาด div 7 ให้กว้างขึ้นและอยู่กลางแถวที่ 3 */
+.video-container:has(.video-card:nth-child(1):nth-last-child(8)) .video-card:nth-child(7) {
+    grid-column: 1 / span 2; /* เริ่มจากคอลัมน์ที่ 1 และขยาย 2 คอลัมน์ */
+    justify-self: center;
+    width: 47.5%;
+    grid-row: 3; /* อยู่แถวที่ 3 */
+}
+
+/* ปรับขนาด div 8 ให้ต่อกันอย่างถูกต้อง */
+.video-container:has(.video-card:nth-child(1):nth-last-child(8)) .video-card:nth-child(8) {
+    grid-column: 2 / span 2; /* เริ่มจากคอลัมน์ที่ 2 และขยาย 2 คอลัมน์ */
+    justify-self: center;
+    width: 47.5%;
+    grid-row: 3; /* อยู่แถวที่ 3 */
+}
+
+/*----------------- กรณีมี 9 วิดีโอ -------------------*/
+.video-container:has(.video-card:nth-child(1):nth-last-child(n+9)) {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 คอลัมน์ */
+    grid-template-rows: repeat(3, 1fr); /* 3 แถว ขนาดเท่ากัน */
+    gap: 10px;
+}
+
+
+
+.video-container:has(.video-card:nth-child(1):nth-last-child(n+7)) .video-card {
+    width: 95%;
+}
+
+
+
+/* .video-card.hidden {
+        display: none;
+    } */
+
+.video-bar {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 10px;
+    position: relative;
+    z-index: 1000;
+}
+
+
+/* ปรับขนาด video card ให้อยู่ใน bar โดยไม่ให้เกินขอบ */
+.video-bar .video-card {
+    width: min(150px, 15%);
+    height: auto;
+    aspect-ratio: 3 / 2;
+    flex-shrink: 1;
+    cursor: pointer;
+    transition: transform 0.2s;
+    border-radius: 5px;
+}
+
+/* ลดขนาด video card เพิ่มเติมถ้ามีเยอะ */
+@media (max-width: 768px) {
+    .video-bar .video-card {
+        width: min(120px, 18%);
+    }
+}
+
+@media (max-width: 480px) {
+    .video-bar .video-card {
+        width: min(100px, 20%);
+    }
+}
+
+.video-bar .video-card:hover {
+    transform: scale(1.1);
+}
+
+/* เมื่อ Sidebar เปิด */
+.sidebar.open~.container .video-bar {
+    width: 100%;
+}
+
+/* เมื่อ Sidebar เปิด */
+.sidebar.open~.container {
+    margin-left: 333px;
+    width: calc(100vw - 333px);
+    max-width: calc(100vw - 333px);
+}
+
+
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    left: -333px;
+    top: 0;
+    width: 333px;
+    height: 100%;
+    background-color: #444;
+    transition: left 0.2s;
+    z-index: 10;
+}
+
+.sidebar.open {
+    left: 0;
+}
+
+/* ปรับ Container เมื่อ Sidebar เปิด */
+.container.shifted {
+    width: calc(100% - 333px);
+    margin-left: 333px;
+}
+
+.toggleButton {
+    border-radius: 50%;
+    width: 45px !important;
+    height: 45px !important;
+    border: 1px solid rgb(88, 88, 88);
+    background-color: rgba(138, 138, 138, 0.6);
+    color: #ffffff;
+}
+
+.toggleButton i {
+    font-size: 20px;
+}
+
+
+/*-------- ปุ่มซ่อน/แสดง video-bar ----------*/
+
+/* เมื่อ Video Bar ถูกซ่อน */
+.video-bar.hidden {
+    /* margin-bottom: -150px; */
+    display: none;
+}
+
+.toggle-video-bar-btn {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.8);
+    color: black;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1500;
+    transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.toggle-video-bar-btn-close {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(255, 255, 255, 0.8);
+    color: black;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 1500;
+    transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+/* .toggle-video-bar-btn {
+    border-radius: 50%;
+    width: 45px !important;
+    height: 45px !important;
+    border: 1px solid rgb(88, 88, 88);
+    background-color: rgba(138, 138, 138, 0.6);
+    color: #ffffff;
+}
+
+.toggle-video-bar-btn-close {
+    border-radius: 50%;
+    width: 45px !important;
+    height: 45px !important;
+    border: 1px solid rgb(88, 88, 88);
+    background-color: rgba(138, 138, 138, 0.6);
+    color: #ffffff;
+} */
+
+/* ไอคอนหมุนขึ้น */
+.toggle-video-bar-btn i {
+    font-size: 16px;
+    transition: transform 0.3s ease-in-out;
+}
+
+.toggle-video-bar-btn-close i {
+    transform: rotate(180deg);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* =================ตัว loading animation==================== */
+#lds-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 1); /* ปรับสีพื้นหลังตามความต้องการ */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* ให้มีค่า z-index สูงกว่าทุกอย่างบนหน้าเว็บ */
+}
+
+.lds-ring {
+    display: inline-block;
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+.lds-ring div {
+    box-sizing: border-box;
+    display: block;
+    position: absolute;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border: 8px solid #2f0cf3;
+    border-radius: 50%;
+    animation: lds-ring 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    border-color: #1a6ce7 transparent transparent transparent;
+}
+.lds-ring div:nth-child(1) {
+    animation-delay: -0.45s;
+}
+.lds-ring div:nth-child(2) {
+    animation-delay: -0.3s;
+}
+.lds-ring div:nth-child(3) {
+    animation-delay: -0.15s;
+}
+@keyframes lds-ring {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+/* ----------------- End ตัว loading animation ----------------- */
