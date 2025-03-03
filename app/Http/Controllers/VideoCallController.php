@@ -43,11 +43,58 @@ class VideoCallController extends Controller
     }
 
     public function video_call_pc(Request $request,$type ,$sos_id){
-        $type = "zone_sos";
+
+        $requestData = $request->all();
+        $user = Auth::user();
+
         $agoraAppId = config('agora.app_id');
         $agoraAppCertificate = config('agora.app_certificate');
 
-        return view('agora_video_call/video_call_pc', compact('type','sos_id','agoraAppId','agoraAppCertificate'));
+        if (!empty($requestData['useSpeaker'])) {
+            $useSpeaker = $requestData['useSpeaker'];
+        } else {
+            $useSpeaker = '';
+        }
+
+        if (!empty($requestData['useMicrophone'])) {
+            $useMicrophone = $requestData['useMicrophone'];
+        } else {
+            $useMicrophone = '';
+        }
+
+        if (!empty($requestData['useCamera'])) {
+            $useCamera = $requestData['useCamera'];
+        } else {
+            $useCamera = '';
+        }
+
+        if($type == 'zone_sos'){
+            // $sos_data  = Zone_Sos_help_center::join('sos_1669_form_yellows', 'sos_help_centers.id', '=', 'sos_1669_form_yellows.sos_help_center_id')
+            // ->where('sos_help_centers.id',$sos_id)
+            // ->select('sos_help_centers.*','sos_1669_form_yellows.*','sos_help_centers.time_create_sos as created_sos')
+            // ->first();
+
+            $sos_data = DB::table('zone_sos_help_centers')
+                ->join('sos_1669_form_yellows', 'zone_sos_help_centers.id', '=', 'sos_1669_form_yellows.sos_help_center_id')
+                ->where('zone_sos_help_centers.id', $sos_id)
+                ->select('zone_sos_help_centers.*', 'sos_1669_form_yellows.*', 'zone_sos_help_centers.time_create_sos as created_sos')
+                ->first();
+
+            $groupId = '';
+
+            if($user->id == $sos_data->user_id){
+                $role_permission = 'help_seeker'; //ผู้ขอความช่วยเหลือ
+            }else{
+                $role_permission = 'helper';
+            }
+
+            $data_agora = Zone_agora_chat::where('sos_id',$sos_id)->where('room_for','meet_operating_1669')->first();
+        }
+
+        $videoTrack = $requestData['videoTrack'];
+        $audioTrack = $requestData['audioTrack'];
+
+        return view('agora_video_call/video_call_pc',compact('type','sos_id','agoraAppId','agoraAppCertificate','videoTrack','audioTrack','useSpeaker','useMicrophone','useCamera'));
     }
 
     public function video_call_mobile(Request $request){
@@ -128,7 +175,7 @@ class VideoCallController extends Controller
         $channelName = $request->type . $request->sos_id;
 
         $role = RtcTokenBuilder::RoleAttendee;
-        $expireTimeInSeconds = 5;
+        $expireTimeInSeconds = 600;
         $currentTimestamp = now()->getTimestamp();
         $privilegeExpiredTs = $currentTimestamp + $expireTimeInSeconds;
 
@@ -155,6 +202,7 @@ class VideoCallController extends Controller
 
         if($type == 'zone_sos'){
             // $data_sos = Sos_help_center::where('id',$sos_id)->first();
+            DB::table('zone_sos_help_centers')->where('id',$sos_id)->first();
         }
 
         $local_data = User::where('id',$user_id)->first();
@@ -204,6 +252,71 @@ class VideoCallController extends Controller
         return $data;
     }
 
+    function get_remote_data(Request $request){
+        $user_id = $request->user_id;
+        $type = $request->type;
+        $sos_id = $request->sos_id;
+
+        if($type == 'sos_1669'){
+            // $data_sos = Sos_help_center::where('id',$sos_id)->first();
+            DB::table('zone_sos_help_centers')->where('id',$sos_id)->first();
+        }
+
+        $remote_data = User::where('id',$user_id)->first();
+
+        $data = [];
+        $data['photo'] = $remote_data->photo;
+        $data['avatar'] = $remote_data->avatar;
+
+        if($type == 'sos_1669'){
+            $data_command = Zone_data_officer_command::where('user_id',$user_id)->first();
+            $data_officer = Zone_data_operating_officer::where('user_id',$user_id)->first();
+            // $data_hospital_officer = Data_1669_officer_hospital::where('user_id',$user_id)->first();
+
+            if(!empty($data_command->name_officer_command)){
+                $data['user_type'] = "ศูนย์อำนวยการ";
+                $data['name_user'] = $data_command->name_officer_command;
+                // $data['unit'] = '';
+            }elseif(!empty($data_officer->name_officer)){
+                $data['user_type'] = "หน่วยแพทย์ฉุกเฉิน";
+                $data['name_user'] = $data_officer->name_officer;
+                // $data['unit'] = $data_officer->operating_unit->name;
+            }
+            // elseif(!empty($data_hospital_officer->name_officer_hospital)){
+            //     $data['user_type'] = "เจ้าหน้าที่ห้อง ER";
+            //     $data['name_user'] = $data_hospital_officer->name_officer_hospital;
+            //     // $data['name_user'] = $data_hospital_officer->user->name;
+            // }
+            else{
+                $data['user_type'] = "--";
+                $data['name_user'] = $remote_data->name;
+            }
+        }
+
+        // if (!empty($remote_data->photo)) {
+        //     $text_path_remote = storage_path('app/public/' . $remote_data->photo);
+        //     $img_remote = Image::make($text_path_remote);
+
+        //     // โหลดข้อมูลขนาดของรูปภาพ
+        //     $imageData_remote = file_get_contents($text_path_remote);
+        //     list($width, $height) = getimagesizefromstring($imageData_remote);
+        //     // หาจุดตรงกลาง
+        //     $centerX = round($width / 2);
+        //     $centerY = round($height / 2);
+
+        //     // ตรวจสอบสีที่จุดกึ่งกลางรูปถาพ
+        //     $hexcolor = $img_remote->pickColor($centerX, $centerY, 'hex');
+
+        //     // $hexcolor = '#2b2d31';
+        // } else {
+        //     $hexcolor = '#2b2d26';
+        // }
+        $hexcolor = '#2b2d26';
+
+        $data['hexcolor'] = $hexcolor;
+        return $data;
+    }
+
     function join_room(Request $request)
     {
         $sos_id = $request->sos_id;
@@ -246,14 +359,13 @@ class VideoCallController extends Controller
         }else{
             // ไม่มีข้อมูล ใน member_in_room
             $data_update = [];
-
             $data_update[] = $user_id;
             $update_time_start = date("Y-m-d H:i:s");
 
             $update_than_2_time_start = null;
         }
 
-        DB::table('agora_chats')
+        DB::table('zone_agora_chats')
             ->where([
                     ['sos_id', $sos_id],
                     ['room_for', $type_text],
@@ -262,6 +374,7 @@ class VideoCallController extends Controller
                     'member_in_room' => $data_update,
                     'time_start' => $update_time_start,
                     'than_2_people_time_start' => $update_than_2_time_start,
+                    'amount_meet' => DB::raw("IFNULL(amount_meet, 0) + 1"), // เพิ่มค่าทีละ 1 ถ้าเป็น null หรือ 0 ให้เริ่มจาก 1
                 ]);
 
         if (!empty($type_join)) {
@@ -329,4 +442,258 @@ class VideoCallController extends Controller
         }
 
     }
+
+    function left_room(Request $request)
+    {
+
+        $sos_id = $request->sos_id;
+        $user_id = $request->user_id;
+        $type = $request->type;
+        $leave = $request->leave;
+
+        // if($type == 'zone_sos'){
+        //     $type_text = "zone_sos";
+        // }
+
+        $type_text = "zone_sos";
+
+
+        if($leave == "leave_fast"){
+            $agora_chat_old = Zone_agora_chat::where('sos_id' , $sos_id)->where('room_for' , $type_text)->first();
+            $data_old = $agora_chat_old->member_in_room;
+
+            $data_array = json_decode($data_old, true);
+            // นับจำนวนข้อมูลใน $data_update
+
+            if(!empty($data_array) ){
+                // ใช้ array_filter เพื่อกรองข้อมูลที่ต้องการลบ
+                $data_array = array_filter($data_array, function($value) use ($user_id) {
+                    return $value != $user_id;
+                });
+
+                if (!empty($data_array)) {
+                    // ใช้ array_values เพื่อรีเดิมดัชนีของอาร์เรย์ให้ต่อเนื่องโดยไม่มีช่องว่าง
+                    $data_array = array_values($data_array);
+                    // แปลงกลับเป็น JSON
+                    $data_update = json_encode($data_array);
+                    // นับจำนวนข้อมูลใน $data_update
+                    $number_of_data = count($data_array);
+                } else {
+                    $data_update = null;
+                }
+            }else{
+                $data_update = null;
+            }
+
+            DB::table('agora_chats')
+            ->where([
+                    ['sos_id', $sos_id],
+                    ['room_for', $type_text],
+                ])
+            ->update([
+                    'member_in_room' => $data_update,
+            ]);
+
+            $agora_chat = Zone_agora_chat::where('sos_id' , $sos_id)->where('room_for' , $type_text)->first();
+            $data_new = $agora_chat->member_in_room;
+
+            $check_time_Start = $agora_chat->time_start;
+            $check_time_Start_2_people = $agora_chat->than_2_people_time_start;
+            // นับจำนวนข้อมูลใน $data_update
+
+            if(!empty($agora_chat->than_2_people_time_start)){
+                if($number_of_data < 2){
+                    $update_than_2_people_timemeet = null;
+                    $date_now_2 = date("Y-m-d H:i:s");
+
+                    $than_2_people_time_start = $agora_chat->than_2_people_time_start ;
+
+                    $than_2_time_start_seconds = strtotime($than_2_people_time_start);
+                    $date_now_seconds_2 = strtotime($date_now_2);
+                    $seconds_passed_2 =  (int)$date_now_seconds_2 - (int)$than_2_time_start_seconds ;
+
+                    $current_than_2_people_timemeet = (int)$seconds_passed_2;
+                }else{
+                    $current_than_2_people_timemeet = null;
+                }
+
+                if(!empty($agora_chat->than_2_people_timemeet) ){
+                    $update_than_2_people_timemeet = (int)$agora_chat->than_2_people_timemeet + (int)$current_than_2_people_timemeet ;
+                }else{
+                    $update_than_2_people_timemeet = $current_than_2_people_timemeet ;
+                }
+            }
+
+            if($data_new == null){
+                $update_time_start = null ;
+
+                $date_now = date("Y-m-d H:i:s");
+
+                $time_start = $agora_chat->time_start;
+
+                $time_start_seconds = strtotime($time_start);
+                $date_now_seconds = strtotime($date_now);
+                $seconds_passed =  (int)$date_now_seconds - (int)$time_start_seconds ;
+
+                $update_total_timemeet = (int)$agora_chat->total_timemeet + (int)$seconds_passed ;
+
+                $update_than_2_people_time_start = null;
+            }else{
+                $update_time_start = $agora_chat->time_start ;
+                $update_total_timemeet = $agora_chat->total_timemeet ;
+
+                if($number_of_data < 2){
+                    //ลบ ข้อมูล than_2_people_time_start
+                    $update_than_2_people_time_start = null;
+                }else{
+                    $update_than_2_people_time_start = $agora_chat->than_2_people_time_start;
+                }
+            }
+
+            if (!empty($check_time_Start)) {
+                DB::table('zone_agora_chats')
+                ->where([
+                        ['sos_id', $sos_id],
+                        ['room_for', $type_text],
+                    ])
+                ->update([
+                        'time_start' => $update_time_start,
+                        'total_timemeet' => $update_total_timemeet,
+                    ]);
+            }
+
+            if (!empty($check_time_Start_2_people)) {
+                DB::table('zone_agora_chats')
+                ->where([
+                        ['sos_id', $sos_id],
+                        ['room_for', $type_text],
+                    ])
+                ->update([
+                        'than_2_people_timemeet' => $update_than_2_people_timemeet,
+                        'than_2_people_time_start' => $update_than_2_people_time_start,
+                    ]);
+            }
+
+        }else{
+
+            $agora_chat_old = Zone_agora_chat::where('sos_id' , $sos_id)->where('room_for' , $type_text)->first();
+            $data_old = $agora_chat_old->member_in_room;
+
+            $data_array = json_decode($data_old, true);
+            // นับจำนวนข้อมูลใน $data_update
+
+            if(!empty($data_array) ){
+                // ใช้ array_filter เพื่อกรองข้อมูลที่ต้องการลบ
+                $data_array = array_filter($data_array, function($value) use ($user_id) {
+                    return $value != $user_id;
+                });
+
+                if (!empty($data_array)) {
+                    // ใช้ array_values เพื่อรีเดิมดัชนีของอาร์เรย์ให้ต่อเนื่องโดยไม่มีช่องว่าง
+                    $data_array = array_values($data_array);
+                    // แปลงกลับเป็น JSON
+                    $data_update = json_encode($data_array);
+                    // นับจำนวนข้อมูลใน $data_update
+                    $number_of_data = count($data_array);
+                } else {
+                    $data_update = null;
+
+                }
+            }else{
+                $data_update = null;
+            }
+
+            DB::table('agora_chats')
+            ->where([
+                    ['sos_id', $sos_id],
+                    ['room_for', $type_text],
+                ])
+            ->update([
+                    'member_in_room' => $data_update,
+            ]);
+
+            $agora_chat = Zone_agora_chat::where('sos_id' , $sos_id)->where('room_for' , $type_text)->first();
+            $data_new = $agora_chat->member_in_room;
+
+            $check_time_Start = $agora_chat->time_start;
+            $check_time_Start_2_people = $agora_chat->than_2_people_time_start;
+            // นับจำนวนข้อมูลใน $data_update
+
+            if(!empty($agora_chat->than_2_people_time_start)){
+                if($number_of_data < 2){
+                    $update_than_2_people_timemeet = null;
+                    $date_now_2 = date("Y-m-d H:i:s");
+
+                    $than_2_people_time_start = $agora_chat->than_2_people_time_start ;
+
+                    $than_2_time_start_seconds = strtotime($than_2_people_time_start);
+                    $date_now_seconds_2 = strtotime($date_now_2);
+                    $seconds_passed_2 =  (int)$date_now_seconds_2 - (int)$than_2_time_start_seconds ;
+
+                    $current_than_2_people_timemeet = (int)$seconds_passed_2;
+                }else{
+                    $current_than_2_people_timemeet = null;
+                }
+
+                if(!empty($agora_chat->than_2_people_timemeet) ){
+                    $update_than_2_people_timemeet = (int)$agora_chat->than_2_people_timemeet + (int)$current_than_2_people_timemeet ;
+                }else{
+                    $update_than_2_people_timemeet = $current_than_2_people_timemeet ;
+                }
+            }
+
+            if($data_new == null){
+                $update_time_start = null ;
+
+                $date_now = date("Y-m-d H:i:s");
+
+                $time_start = $agora_chat->time_start;
+
+                $time_start_seconds = strtotime($time_start);
+                $date_now_seconds = strtotime($date_now);
+                $seconds_passed =  (int)$date_now_seconds - (int)$time_start_seconds ;
+
+                $update_total_timemeet = (int)$agora_chat->total_timemeet + (int)$seconds_passed ;
+
+                $update_than_2_people_time_start = null;
+            }else{
+                $update_time_start = $agora_chat->time_start ;
+                $update_total_timemeet = $agora_chat->total_timemeet ;
+
+                if($number_of_data < 2){
+                    //ลบ ข้อมูล than_2_people_time_start
+                    $update_than_2_people_time_start = null;
+                }else{
+                    $update_than_2_people_time_start = $agora_chat->than_2_people_time_start;
+                }
+            }
+
+            if (!empty($check_time_Start)) {
+                DB::table('zone_agora_chats')
+                ->where([
+                        ['sos_id', $sos_id],
+                        ['room_for', $type_text],
+                    ])
+                ->update([
+                        'time_start' => $update_time_start,
+                        'total_timemeet' => $update_total_timemeet,
+                    ]);
+            }
+
+            if (!empty($check_time_Start_2_people)) {
+                DB::table('zone_agora_chats')
+                ->where([
+                        ['sos_id', $sos_id],
+                        ['room_for', $type_text],
+                    ])
+                ->update([
+                        'than_2_people_timemeet' => $update_than_2_people_timemeet,
+                        'than_2_people_time_start' => $update_than_2_people_time_start,
+                    ]);
+            }
+
+            return "OK" ;
+        }
+    }
+
 }

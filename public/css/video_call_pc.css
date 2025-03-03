@@ -29,7 +29,7 @@ html {
     left: 0;
     width: 100%;
     background-color: #333;
-    padding: 10px 0;
+    padding: 5px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -234,6 +234,7 @@ html {
 
 /* ปรับขนาด video card ให้อยู่ใน bar โดยไม่ให้เกินขอบ */
 .video-bar .video-card {
+    position: relative;
     width: min(150px, 15%);
     height: auto;
     aspect-ratio: 3 / 2;
@@ -295,20 +296,6 @@ html {
     margin-left: 333px;
 }
 
-.toggleButton {
-    border-radius: 50%;
-    width: 45px !important;
-    height: 45px !important;
-    border: 1px solid rgb(88, 88, 88);
-    background-color: rgba(138, 138, 138, 0.6);
-    color: #ffffff;
-}
-
-.toggleButton i {
-    font-size: 20px;
-}
-
-
 /*-------- ปุ่มซ่อน/แสดง video-bar ----------*/
 
 /* เมื่อ Video Bar ถูกซ่อน */
@@ -345,23 +332,17 @@ html {
     transition: top 0.3s ease-in-out, bottom 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
-/* .toggle-video-bar-btn {
-    border-radius: 50%;
-    width: 45px !important;
-    height: 45px !important;
-    border: 1px solid rgb(88, 88, 88);
-    background-color: rgba(138, 138, 138, 0.6);
-    color: #ffffff;
+/* div ล่องหนใช้ในการคลิ๊กย้ายตำแหน่ง */
+.transparent-div {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    background: rgba(255, 255, 255, 0);
+    /* pointer-events: none; */
 }
-
-.toggle-video-bar-btn-close {
-    border-radius: 50%;
-    width: 45px !important;
-    height: 45px !important;
-    border: 1px solid rgb(88, 88, 88);
-    background-color: rgba(138, 138, 138, 0.6);
-    color: #ffffff;
-} */
 
 /* ไอคอนหมุนขึ้น */
 .toggle-video-bar-btn i {
@@ -424,3 +405,240 @@ html {
     }
 }
 /* ----------------- End ตัว loading animation ----------------- */
+
+/* --------------------------  ฟังก์ชัน เปลี่ยนไมค์และกล้อง -------------------------------------*/
+
+.dropcontent {
+    visibility: hidden;
+    width: 142px;
+    & a {
+        color: rgb(31, 193, 27);
+    }
+}
+
+.open_dropcontent {
+    visibility: visible;
+}
+
+.dropcontent2{
+    visibility: hidden;
+    width: 142px;
+    & a {
+        color: rgb(31, 193, 27);
+    }
+}
+
+.open_dropcontent2 {
+    visibility: visible;
+}
+
+.btnSpecial_mute{
+    background-color: #f15a5a ;
+}
+
+.btnSpecial_mute:hover{
+    background-color: #fa3838 !important;
+}
+
+.btnSpecial_unmute{
+    background-color: #3f3e3e ;
+}
+
+.btn_leave{
+    background-color: #ff0000 ;
+}
+
+.btn_leave:hover{
+    background-color: #fa3838 !important;
+}
+
+.audio_button{
+    background: rgba(255, 255, 255, 0);
+    position: absolute;
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    border:#fff 1px;
+}
+
+.video_button{
+    background: rgba(255, 255, 255, 0);
+    position: absolute;
+    border-radius: 50%;
+    width: 100%;
+    height: 100%;
+    border:#fff 1px;
+}
+
+.btnSpecial {
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin: 5px;
+    top: 0; /* ตำแหน่ง list ขึ้นด้านบนของปุ่ม */
+    left: 0;
+    /* border:#fff 1px solid; */
+    background-color: rgba(138, 138, 138, 0.6);
+}
+
+/* .btnSpecial:hover {
+    background-color: #292828;
+} */
+
+.btnSpecial i{
+    color: #fff;
+    font-size: 1.3rem; /* 60% ของขนาดปัจจุบันของ i */
+    transition: transform 0.3s ease; /* เพิ่มการเปลี่ยนแปลงอย่างนุ่มนวล */
+}
+
+.smallCircle {
+    background-color: rgb(119, 119, 119);
+    border: none;
+    border-radius: 50%;
+    width: 20px; /* ปรับขนาดตามที่คุณต้องการ */
+    height: 20px; /* ปรับขนาดตามที่คุณต้องการ */
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    transform: translate(50%, 50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border:#333 1px solid;
+    z-index: 1;
+}
+
+/* .smallCircle:hover{
+    background-color: rgba(138, 138, 138, 1);
+} */
+
+.smallCircle i{
+    color: #ffffff;
+    font-size: 10px;
+}
+
+.fa-arrow-up {
+    color: #fff; /* เปลี่ยนสีไอคอนตามที่คุณต้องการ */
+    font-size: 20px; /* ปรับขนาดตามที่คุณต้องการ */
+}
+
+.ui-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    bottom: 100; /* ตำแหน่ง list ขึ้นด้านบนของปุ่ม */
+    left: 61%; /* ให้อยู่กึ่งกลางด้านซ้าย */
+    transform: translateX(-49%); /* ให้ย้ายกลับไปที่ตำแหน่งที่ถูกต้อง */
+    background-color: #3f3e3e;
+    border-radius: 5px;
+    z-index: 1000; /* เพื่อให้แสดงอยู่ข้างบนของปุ่ม */
+    min-width: 250px; /* กำหนดความกว้างขั้นต่ำ */
+
+}
+
+.ui-list-item {
+    color: #ffffff; /* สีข้อความ */
+    padding-left: 15px;
+    padding-right: 15px;
+    /* padding-top: 5px; */
+    padding-bottom: 5px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between; /* จัดตัว radio2 ไปทางขวา */
+    align-items: center; /* จัดให้เนื้อหาแนวตั้งกลาง */
+}
+
+.top-0 {
+    top: 0;
+}
+
+.top-50 {
+    top: 50px;
+}
+
+.top-100 {
+    top: 100px;
+}
+
+/* เมื่อเมาส์ hover บนรายการ */
+.ui-list-item:hover {
+    background-color: #555555; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
+    cursor: pointer;
+}
+
+.overflow_auto_video_call{
+    overflow: auto;
+}
+
+.time_of_room{
+    position: absolute;
+    padding: 5px;
+    border-radius: 10px;
+    top: 3%;
+    right: 40%;
+    /* bottom: 11%;
+    left: 3%; */
+    z-index: 9999;
+    background-color: #292828; /* Discord's color */
+    color: #ffffff;
+}
+
+/* -------------------------- จบ ฟังก์ชัน เปลี่ยนไมค์และกล้อง -------------------------------------*/
+
+/* -------------------------- Profile ใน container -------------------------------------*/
+
+.video-bar div div .profile_image{ /* ของ bar ล่าง  */
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* คงรูปร่างวงกลม */
+    object-fit: cover;
+    pointer-events: none;
+}
+
+#video-container div div .profile_image{ /* ของ container ใหญ่ */
+    width: 150px;
+    height: 150px;
+    border-radius: 50%; /* คงรูปร่างวงกลม */
+    object-fit: cover;
+    pointer-events: none;
+}
+/* -------------------------- จบ Profile ใน sidebar -------------------------------------*/
+
+/* -------------------------- Profile ใน sidebar -------------------------------------*/
+.profile-picture {
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    margin: 5px;
+    top: 0; /* ตำแหน่ง list ขึ้นด้านบนของปุ่ม */
+    left: 0;
+    border:#fff 1px solid;
+}
+
+.profile-info {
+    /* width: 40%; */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.profile-info p {
+    margin: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+/* -------------------------- จบ Profile ใน sidebar -------------------------------------*/
+
