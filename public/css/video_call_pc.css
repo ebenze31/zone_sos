@@ -355,6 +355,101 @@ html {
     transition: transform 0.3s ease-in-out;
 }
 
+.video-bar .video-card .infomation-user{
+    transform: scale(0.6);
+    margin: 0;
+    bottom: -12px;
+    right: -30px;
+    font-size: 1.3em;
+    font-weight: bold;
+    /* word-wrap: break-word; */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100%);
+}
+
+.video-card .status-sound-output{
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+}
+
+.video-card .status-input-output{
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    z-index: 4;
+}
+
+.video-card .infomation-user{
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    background-color: rgba(132, 136, 140 , 0.8);
+    padding: .5rem 1rem;
+    border-radius: 10px;
+    margin: 1rem;
+    color: #ffffff !important;
+    font-size: 1em;
+    font-weight: bold;
+    /* word-wrap: break-word; */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 10%);
+}
+
+.infomation-user .role-user-video-call ,.infomation-user .name-user-video-call{
+    display: block;
+}
+
+.status-input-output .mic ,.status-input-output .camera,.status-sound-output .sound{
+    margin: 5px;
+    background-color: rgba(132, 136, 140 , 0.8);
+    padding: .5rem 1rem;
+    border-radius: 10px;
+    color: #ffffff;
+}
+
+.status-input-output .settings{
+    margin: 5px;
+    background-color: rgba(132, 136, 140 , 0.8);
+    padding: .5rem 1rem;
+    border-radius: 10px;
+    color: #ffffff;
+    z-index: 4;
+}
+
+.video-bar .video-card {
+    border-radius: 10px;
+}
+
+.video-bar .video-card .infomation-user{
+    transform: scale(0.6);
+    margin: 0;
+    bottom: -12px;
+    right: -30px;
+    font-size: 1.3em;
+    font-weight: bold;
+    /* word-wrap: break-word; */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100%);
+}
+
+.video-bar .video-card .status-input-output{
+    transform: scale(0.7);
+    margin: 0;
+    top: -3px;
+    right: -10px;
+    z-index: 4;
+}
+
+
 /* =================ตัว loading animation==================== */
 #lds-ring {
     position: fixed;
