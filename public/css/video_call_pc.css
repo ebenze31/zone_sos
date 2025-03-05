@@ -503,37 +503,13 @@ html {
 
 /* --------------------------  ฟังก์ชัน เปลี่ยนไมค์และกล้อง -------------------------------------*/
 
-.dropcontent {
-    visibility: hidden;
-    width: 142px;
-    & a {
-        color: rgb(31, 193, 27);
-    }
-}
-
-.open_dropcontent {
-    visibility: visible;
-}
-
-.dropcontent2{
-    visibility: hidden;
-    width: 142px;
-    & a {
-        color: rgb(31, 193, 27);
-    }
-}
-
-.open_dropcontent2 {
-    visibility: visible;
-}
-
-.btnSpecial_mute{
-    background-color: #f15a5a ;
+/* .btnSpecial_mute{
+    background-color: #3f3e3e ;
 }
 
 .btnSpecial_mute:hover{
-    background-color: #fa3838 !important;
-}
+    background-color: #3f3e3e !important;
+} */
 
 .btnSpecial_unmute{
     background-color: #3f3e3e ;
@@ -550,24 +526,24 @@ html {
 .audio_button{
     background: rgba(255, 255, 255, 0);
     position: absolute;
-    border-radius: 50%;
+    /* border-radius: 50%; */
     width: 100%;
     height: 100%;
-    border:#fff 1px;
+    border:#333 1px;
 }
 
 .video_button{
     background: rgba(255, 255, 255, 0);
     position: absolute;
-    border-radius: 50%;
+    /* border-radius: 50%; */
     width: 100%;
     height: 100%;
-    border:#fff 1px;
+    border:#333 1px;
 }
 
 .btnSpecial {
     border: none;
-    border-radius: 50%;
+    border-radius: 15px;
     width: 50px;
     height: 50px;
     cursor: pointer;
@@ -595,9 +571,9 @@ html {
 .smallCircle {
     background-color: rgb(119, 119, 119);
     border: none;
-    border-radius: 50%;
-    width: 20px; /* ปรับขนาดตามที่คุณต้องการ */
-    height: 20px; /* ปรับขนาดตามที่คุณต้องการ */
+    border-radius: 10px;
+    width: 25px; /* ปรับขนาดตามที่คุณต้องการ */
+    height: 25px; /* ปรับขนาดตามที่คุณต้องการ */
     position: absolute;
     bottom: 8px;
     right: 8px;
@@ -628,48 +604,60 @@ html {
     padding: 0;
     margin: 0;
     position: absolute;
-    bottom: 100; /* ตำแหน่ง list ขึ้นด้านบนของปุ่ม */
-    left: 61%; /* ให้อยู่กึ่งกลางด้านซ้าย */
-    transform: translateX(-49%); /* ให้ย้ายกลับไปที่ตำแหน่งที่ถูกต้อง */
+    bottom: 100%; /* ตำแหน่งรายการข้างบนของปุ่ม */
+    left: 50%; /* ให้อยู่ตรงกลาง */
+    transform: translateX(-50%); /* จัดกลางรายการ */
     background-color: #3f3e3e;
     border-radius: 5px;
-    z-index: 1000; /* เพื่อให้แสดงอยู่ข้างบนของปุ่ม */
+    z-index: 1000; /* เพื่อให้มันอยู่เหนือปุ่ม */
     min-width: 250px; /* กำหนดความกว้างขั้นต่ำ */
-
+    width: 500px; /* ปรับให้ความกว้างตามความยาวของเนื้อหาภายใน */
+    overflow-y: auto; /* เพิ่ม scroll หากรายการมีจำนวนมาก */
+    height: auto;
+    margin-bottom: 50px; /* ระยะห่างจากปุ่ม */
 }
 
+
 .ui-list-item {
-    color: #ffffff; /* สีข้อความ */
+    color: #ffffff;
     padding-left: 15px;
     padding-right: 15px;
-    /* padding-top: 5px; */
     padding-bottom: 5px;
     border-radius: 5px;
     display: flex;
-    justify-content: space-between; /* จัดตัว radio2 ไปทางขวา */
-    align-items: center; /* จัดให้เนื้อหาแนวตั้งกลาง */
-}
-
-.top-0 {
-    top: 0;
-}
-
-.top-50 {
-    top: 50px;
-}
-
-.top-100 {
-    top: 100px;
-}
-
-/* เมื่อเมาส์ hover บนรายการ */
-.ui-list-item:hover {
-    background-color: #555555; /* เปลี่ยนสีพื้นหลังเมื่อ hover */
+    justify-content: space-between;
+    align-items: center;
     cursor: pointer;
 }
 
-.overflow_auto_video_call{
-    overflow: auto;
+.ui-list-item:hover {
+    background-color: #555555;
+}
+
+.open_dropcontent {
+    display: block; /* เมื่อเปิดรายการให้แสดง */
+}
+
+.dropcontent, .dropcontent2 {
+    position: absolute; /* ให้รายการลอยอยู่เหนือปุ่ม */
+    visibility: hidden; /* ซ่อนรายการเมื่อไม่ได้ใช้งาน */
+    opacity: 0; /* ซ่อนด้วย opacity */
+    transition: opacity 0.3s ease; /* เพิ่มการเปลี่ยนแปลงความโปร่งใส */
+}
+
+.open_dropcontent {
+    visibility: visible;
+    opacity: 1; /* เปิดแสดงรายการด้วยการปรับ opacity */
+}
+
+.open_dropcontent2 {
+    visibility: visible;
+    opacity: 1;
+}
+
+.radio_style:checked {
+    border-color: red; /* เปลี่ยนสีขอบของ radio input เป็นสีแดงเมื่อถูกเลือก */
+    background-color: red; /* เปลี่ยนสีพื้นหลังของ radio input เป็นสีแดงเมื่อถูกเลือก */
 }
 
 .time_of_room{
@@ -736,4 +724,3 @@ html {
     white-space: nowrap;
 }
 /* -------------------------- จบ Profile ใน sidebar -------------------------------------*/
-

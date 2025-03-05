@@ -18,7 +18,7 @@
         </div>
         <div class="main-content-video-call">
             <div class="row">
-                <div class="col-12 col-sm-12 col-lg-8 p-2 d-flex flex-column align-items-center justify-content-center">
+                <div class="col-12 col-sm-12 col-lg-9 p-2 d-flex flex-column align-items-center justify-content-center">
                     @if ($type_brand == 'pc')
                         <div class="div-video">
                             <video id="videoDiv" style="background-color: #000000;" class="video_preview" autoplay
@@ -53,23 +53,24 @@
                         </div>
                     @endif
 
-                    <div class=" d-nne">
+                    <div class="w-100 d-nne">
                         @if ($type_brand == 'pc')
                             <div class="selectDivice mt-2 p-2 row justify-content-center">
-                                <select id="microphoneList" style="min-width: 150px;"></select>
-                                <select id="cameraList" style="min-width: 150px;"></select>
+                                <select id="microphoneList" style="min-width: 150px; max-width: 200px;"></select>
+                                <select id="cameraList" style="min-width: 150px; max-width: 200px;"></select>
+                                <select id="speakerList" style="min-width: 150px; max-width: 200px;"></select>
                             </div>
                         @else
                             <div class="selectDivice mt-2 p-2 row d-none justify-content-center">
                                 <select id="microphoneList"></select>
                                 <select id="cameraList"></select>
-                                {{-- <select id="speakerList"></select> --}}
+                                <select id="speakerList"></select>
                             </div>
                         @endif
                     </div>
                 </div>
 
-                <div class="col-12 col-sm-12 col-lg-4  d-flex justify-content-center p-3 align-items-center">
+                <div class="col-12 col-sm-12 col-lg-3  d-flex justify-content-center p-3 align-items-center">
                     <div id="before_join_message" class="text-center w-100">
                         @if ($type_brand == 'pc')
                             @if ($type == 'sos_1669' || $type == 'user_sos_1669')
@@ -239,6 +240,7 @@
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 const microphones = [];
                 const cameras = [];
+                const speakers = [];
 
                 document.querySelector('.buttonDiv').classList.remove('d-none');
 
@@ -256,31 +258,51 @@
                             `📷 ${device.label || `อุปกรณ์ ${device.deviceId}`}`);
                         option.appendChild(labelText);
                         cameras.push(option);
+                    } else if (device.kind === "audiooutput") { // เพิ่มการตรวจจับลำโพง
+                        let labelText = document.createTextNode(
+                            `🔊 ${device.label || `อุปกรณ์ ${device.deviceId}`}`);
+                        option.appendChild(labelText);
+                        speakers.push(option);
                     }
                 });
 
-                 // เช็คถ้าไม่มีอุปกรณ์กล้อง
+                // เช็คถ้าไม่มีอุปกรณ์กล้อง
                 if (cameras.length === 0) {
-                    handleNoDevice('camera');
+                    await requestPermission('camera');
                 }
 
                 // เช็คถ้าไม่มีอุปกรณ์ไมโครโฟน
                 if (microphones.length === 0) {
-                    handleNoDevice('microphone');
+                    await requestPermission('microphone');
                 }
 
-                // ค้นหาอุปกรณ์ที่กำลังใช้งานอยู่
+                // เช็คถ้าไม่มีอุปกรณ์ลำโพง
+                if (speakers.length === 0) {
+                    await requestPermission('speaker');
+                }
+
+                // ค้นหาข้อมูลไมโครโฟน, กล้อง และลำโพงที่ใช้งาน
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: true,
                     video: true
                 });
+
+                // ดึงข้อมูลไมโครโฟนที่ใช้งาน
                 const currentMicrophoneId = stream.getAudioTracks()[0]?.getSettings()?.deviceId;
+                // ดึงข้อมูลกล้องที่ใช้งาน
                 const currentCameraId = stream.getVideoTracks()[0]?.getSettings()?.deviceId;
+
+                // ใช้ enumerateDevices() เพื่อตรวจสอบอุปกรณ์ลำโพงที่ใช้งาน
+                const activeSpeakers = devices.filter(device => device.kind === 'audiooutput');
+
+                // เปรียบเทียบ deviceId เพื่อหาลำโพงที่ใช้งาน
+                const currentSpeakerId = activeSpeakers.length > 0 ? activeSpeakers[0].deviceId : null;
+
                 // ค้นหาอุปกรณ์จาก enumerateDevices() ที่ตรงกับ deviceId
-                const activeMicrophone = devices.find(device => device.deviceId === currentMicrophoneId && device
-                    .kind === 'audioinput');
-                const activeCamera = devices.find(device => device.deviceId === currentCameraId && device.kind ===
-                    'videoinput');
+                const activeMicrophone = devices.find(device => device.deviceId === currentMicrophoneId && device.kind === 'audioinput');
+                const activeCamera = devices.find(device => device.deviceId === currentCameraId && device.kind === 'videoinput');
+                const activeSpeaker = devices.find(device => device.deviceId === currentSpeakerId && device.kind === 'audiooutput');
+
 
                 // ตั้งค่าให้เลือกอุปกรณ์ที่ใช้งาน
                 microphones.forEach(option => {
@@ -299,6 +321,14 @@
                     cameraList.appendChild(option);
                 });
 
+                speakers.forEach(option => {
+                    if (option.value === currentSpeakerId) {
+                        option.selected = true;
+                        updateSpeaker(activeSpeaker); // ฟังก์ชันเพื่ออัปเดตลำโพง
+                    }
+                    speakerList.appendChild(option);
+                });
+
                 // เมื่อเลือกไมโครโฟนใน dropdown
                 microphoneList.addEventListener("change", () => {
                     selectedMicrophone = devices.find((device) => device.deviceId === microphoneList.value);
@@ -311,8 +341,42 @@
                     updateCamera(selectedCamera); // เรียกใช้ฟังก์ชันเพื่ออัปเดตกล้อง
                 });
 
+                // เมื่อเลือกลำโพงใน dropdown
+                speakerList.addEventListener("change", () => {
+                    selectedSpeaker = devices.find((device) => device.deviceId === speakerList.value);
+                    updateSpeaker(selectedSpeaker); // เรียกใช้ฟังก์ชันเพื่ออัปเดตลำโพง
+                });
+
+
             } catch (error) {
                 console.error("เกิดข้อผิดพลาดในการรับรายการอุปกรณ์:", error);
+            }
+        }
+
+        // ฟังก์ชันขออนุญาตการเข้าถึงอุปกรณ์
+        async function requestPermission(deviceType) {
+            try {
+                let constraints = {};
+
+                if (deviceType === 'camera') {
+                    constraints = { video: true };
+                } else if (deviceType === 'microphone') {
+                    constraints = { audio: true };
+                } else if (deviceType === 'speaker') {
+                    // ขออนุญาตลำโพง
+                    constraints = { audio: { deviceId: 'default' } };
+                }
+
+                // ขออนุญาตให้เข้าถึงอุปกรณ์
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                // ตรวจสอบว่ามีอุปกรณ์หลังจากการขออนุญาต
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                updateDeviceList(devices); // เรียกใช้ฟังก์ชันอัปเดตรายการอุปกรณ์
+
+            } catch (error) {
+                console.error(`ไม่สามารถขออนุญาตเข้าถึง ${deviceType}:`, error);
+                handleNoDevice(deviceType); // เรียกฟังก์ชันเมื่อไม่สามารถขออนุญาตได้
             }
         }
 
@@ -330,6 +394,11 @@
                 document.querySelector('#toggleMicrophoneButton').classList.add('btn-secondary');
                 document.querySelector('#toggleMicrophoneButton').innerHTML = '<i class="fa-regular fa-microphone-slash"></i>'
                 document.querySelector('#microphoneList').setAttribute('disabled', true);
+            }else if (type === 'speaker'){
+                console.warn('ไม่พบอุปกรณ์ไมโครโฟน');
+                document.querySelector('#speakerList').setAttribute('disabled', true);
+            }else{
+                console.warn('ไม่พบประเภทอุปกรณ์');
             }
         }
 
@@ -411,6 +480,36 @@
             if (statusMicrophone == "open") {
                 startMicrophone(selectedMicrophone);
             }
+        }
+
+        // อัปเดตลำโพงที่ใช้งาน
+        function updateSpeaker(selectedSpeaker) {
+            if (selectedSpeaker) {
+                useSpeaker = selectedSpeaker.deviceId;
+                document.querySelector('#btnJoinRoom').setAttribute('href',
+                    "{{ url('/' . $type_device . '/' . $type . '/' . $sos_id) }}?videoTrack=" + statusCamera +
+                    "&audioTrack=" + statusMicrophone + "&useMicrophone=" + useMicrophone + "&useSpeaker=" +
+                    useSpeaker + "&useCamera=" + useCamera);
+            } else {
+                document.querySelector('#btnJoinRoom').setAttribute('href',
+                    "{{ url('/' . $type_device . '/' . $type . '/' . $sos_id) }}?videoTrack=" + statusCamera +
+                    "&audioTrack=" + statusMicrophone + "&useMicrophone=" + useMicrophone + "&useSpeaker=" +
+                    useSpeaker + "&useCamera=" + useCamera);
+            }
+
+            // ตั้งค่าการเล่นเสียงผ่านลำโพงที่เลือก
+            const audio = new Audio(); // สร้างออบเจกต์ Audio
+            audio.setSinkId(selectedSpeaker.deviceId) // ตั้งค่าลำโพงที่เลือก
+                .then(() => {
+                    console.log(`ใช้งานลำโพง: ${selectedSpeaker.label}`);
+                })
+                .catch((error) => {
+                    console.error('เกิดข้อผิดพลาดในการตั้งค่าลำโพง:', error);
+                });
+
+            // if (statusSpeaker == "open") {
+            //     startSpeaker(selectedSpeaker);
+            // }
         }
 
         //======================

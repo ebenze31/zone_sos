@@ -36,6 +36,26 @@
         </div>
 
     </div>
+
+    <!----------------- list รายการอุปกรณ์ ตอนกดเปลี่ยนที่ปุ่มไมโครโฟน หรือ กล้อง  ------------------>
+    {{-- <div class="d-flex overflow_auto_video_call row py-3" style="background-color: #2b2d31;">
+        <div class="align-self-end w-100">
+
+            <div class="dropcontent">
+                <ul id="audio-device-list" class="ui-list">
+                    <!-- Created list-audio from Javascript Here -->
+                </ul>
+            </div>
+            <div class="dropcontent2">
+                <ul id="video-device-list" class="ui-list">
+                    <!-- Created list-video from Javascript Here -->
+                </ul>
+            </div>
+
+        </div>
+    </div> --}}
+    <!----------------- จบ list รายการอุปกรณ์  ------------------>
+
     <style>
         .controls-bar .left {
             display: flex;
@@ -78,19 +98,29 @@
 
             <!-- เปลี่ยนไมค์ ให้กดได้แค่ในคอม -->
 
-                <div id="div_for_AudioButton" class="btn btnSpecial" >
+                <div id="div_for_AudioButton" class=" btnSpecial" >
                     {{-- <i class="fa-regular fa-microphone"></i> --}}
                     <button class="smallCircle" id="btn_switchMicrophone">
                         <i class="fa-sharp fa-solid fa-angle-up"></i>
                     </button>
+                    <div class="dropcontent" id="audio-dropcontent">
+                        <ul id="audio-device-list" class="ui-list">
+                            <!-- Created list-audio from Javascript Here -->
+                        </ul>
+                    </div>
                 </div>
 
                 <!-- เปลี่ยนกล้อง ให้กดได้แค่ในคอม -->
-                <div id="div_for_VideoButton" class="btn btnSpecial " >
+                <div id="div_for_VideoButton" class=" btnSpecial " >
                     {{-- <i id="icon_muteVideo" class="fa-solid fa-camera-rotate"></i> --}}
                     <button class="smallCircle" id="btn_switchCamera">
                         <i class="fa-sharp fa-solid fa-angle-up"></i>
                     </button>
+                    <div class="dropcontent2" id="video-dropcontent">
+                        <ul id="video-device-list" class="ui-list">
+                            <!-- Created list-video from Javascript Here -->
+                        </ul>
+                    </div>
                 </div>
 
                 @if (Auth::user()->id == 1 || Auth::user()->id == 2 || Auth::user()->id == 64 || Auth::user()->id == 11003429 || Auth::user()->id == 11003473)
@@ -106,6 +136,8 @@
 
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="{{ asset('Agora_Web_SDK_FULL/AgoraRTC_N-4.23.0.js') }}"></script>
@@ -134,6 +166,11 @@
         var useSpeaker = '{{$useSpeaker}}'; //ลำโพง
         var useMicrophone = '{{$useMicrophone}}'; //ไมโครโฟน
         var useCamera = '{{$useCamera}}'; //กล้อง
+
+        // เก็บ id device ที่ active อยู่ปัจจุบันเพื่อใช้ในฟังก์ชัน เปลี่ยนอุปกรณ์
+        var activeVideoDeviceId;
+        var activeAudioDeviceId;
+        var activeAudioOutputDeviceId;
 
         //สำหรับกำหนดสี background localPlayerContainer
         var bg_local;
@@ -268,13 +305,54 @@
 
             //แสดง animation โหลด
             LoadingVideoCall();
-            // startBasicCall();
-            //หาตำแหน่งของผู้ใช้ --> แสดงข้อมูล sos_map ตามจังหวัด
-            if(type_video_call === "sos_map"){
-                find_location();
-            }
 
+            //หาตำแหน่งของผู้ใช้ --> แสดงข้อมูล sos_map ตามจังหวัด
+            // if(type_video_call === "sos_map"){
+            //     find_location();
+            // }
+
+
+            const btn_switchCamera = document.querySelector('#btn_switchCamera');
+            const btn_switchMicrophone = document.querySelector('#btn_switchMicrophone');
+            // ฟังก์ชันเปิด-ปิดรายการไมโครโฟน
+            btn_switchMicrophone.addEventListener("click", function(event) {
+                event.stopPropagation(); // หยุดการกระจายเหตุการณ์คลิกไปยัง document
+
+                // ซ่อน dropcontent ของกล้องหากเปิดอยู่
+                if (document.querySelector(".open_dropcontent2")) {
+                    document.querySelector(".dropcontent2").classList.remove("open_dropcontent2");
+                }
+
+                // สลับแสดง hide/show ของ dropcontent ไมโครโฟน
+                document.querySelector(".dropcontent").classList.toggle("open_dropcontent");
             });
+
+            // ฟังก์ชันเปิด-ปิดรายการกล้อง
+            btn_switchCamera.addEventListener("click", function(event) {
+                event.stopPropagation(); // หยุดการกระจายเหตุการณ์คลิกไปยัง document
+
+                // ซ่อน dropcontent ของไมโครโฟนหากเปิดอยู่
+                if (document.querySelector(".open_dropcontent")) {
+                    document.querySelector(".dropcontent").classList.remove("open_dropcontent");
+                }
+
+                // สลับแสดง hide/show ของ dropcontent2 กล้อง
+                document.querySelector(".dropcontent2").classList.toggle("open_dropcontent2");
+            });
+
+            // ปิด dropcontent เมื่อคลิกที่นอกตัว dropcontent
+            document.addEventListener("click", function(event) {
+                if (!event.target.closest(".dropcontent")) {
+                    document.querySelector(".dropcontent").classList.remove("open_dropcontent");
+                }
+                if (!event.target.closest(".dropcontent2")) {
+                    document.querySelector(".dropcontent2").classList.remove("open_dropcontent2");
+                }
+            });
+
+
+
+        });
 
     </script>
 
@@ -291,11 +369,6 @@
             // console.log(rtcStats);
 
             agoraEngine.enableAudioVolumeIndicator(); // เปิดตัวตรวจับระดับเสียงไมค์
-
-            /////////////////////// ปุ่มสลับ กล้อง /////////////////////
-            const btn_switchCamera = document.querySelector('#btn_switchCamera');
-            /////////////////////// ปุ่มสลับ ไมค์ /////////////////////
-            const btn_switchMicrophone = document.querySelector('#btn_switchMicrophone');
 
             let remotePlayerContainer = []; // ไว้เก็บข้อมูล ผู้ใช้คนอื่น
 
@@ -560,6 +633,31 @@
                             }
                         }
 
+                        // ฟังก์ชันเปลี่ยนอุปกรณ์ลำโพง
+                        async function updateSpeaker(selectedSpeakerId) {
+                            try {
+                                // ตั้งค่าอุปกรณ์ลำโพงที่เลือก
+                                await AgoraRTC.setAudioOutputDevice(selectedSpeakerId);
+                                console.log("🔊 ลำโพงพร้อมใช้งาน:", selectedSpeakerId);
+                            } catch (error) {
+                                console.error("❌ เกิดข้อผิดพลาดในการตั้งค่าลำโพง:", error);
+                            }
+                        }
+
+                        // ฟังก์ชันช่วยในการหาลำโพงที่ใช้งานได้
+                        async function getActiveSpeakerId() {
+                            try {
+                                let devices = await navigator.mediaDevices.enumerateDevices();
+                                let speakers = devices.filter(device => device.kind === 'audiooutput' && device.deviceId !== 'default');
+
+                                return speakers.length > 0 ? speakers[0].deviceId : null;
+
+                            } catch (error) {
+                                console.error("❌ ไม่สามารถดึงข้อมูลลำโพงได้:", error);
+                                return null;
+                            }
+                        }
+
                         // หากล้อง
                         try {
                             let cameraId = useCamera || await getActiveCameraId();
@@ -763,7 +861,9 @@
                 }
 
                 // Remove the containers you created for the local video and remote video.
-                removeVideoDiv(remotePlayerContainer.id);
+                // removeVideoDiv(remotePlayerContainer.id);
+                console.log("localPlayerContainer : "+localPlayerContainer);
+
                 removeVideoDiv(localPlayerContainer.id);
                 // Leave the channel
                 await agoraEngine.leave();
@@ -771,10 +871,14 @@
 
                 if (leaveChannel == "false") {
                     // leaveChannel();
-                    fetch("{{ url('/') }}/api/left_room" + "?user_id=" + '{{ Auth::user()->id }}' + "&type=" + type_video_call + "&sos_id=" + sos_id +"&meet_2_people=beforeunload"+"&leave=beforeunload")
-                        .then(response => response.text())
+                    console.log("sos_id : "+sos_id);
+                    console.log("type_video_call : "+type_video_call);
+                    console.log("user_id : "+user_id);
+
+                    fetch("{{ url('/') }}/api/left_room" + "?user_id=" + user_id + "&type=" + type_video_call + "&sos_id=" + sos_id +"&meet_2_people=beforeunload"+"&leave=beforeunload")
+                        .then(response => response.json())
                         .then(result => {
-                            // console.log(result);
+                            console.log(result);
                             console.log("left_and_update สำเร็จ");
                             leaveChannel = "true";
 
@@ -810,10 +914,6 @@
             //                               สลับอุปกรณ์                                     //
             //=============================================================================//
 
-            var activeVideoDeviceId;
-            var activeAudioDeviceId;
-            // var activeAudioOutputDeviceId
-
             try {
                 // เรียกดูอุปกรณ์ทั้งหมด
                 const devices = await navigator.mediaDevices.enumerateDevices();
@@ -835,238 +935,144 @@
                     activeVideoDeviceId = stream.getVideoTracks()[0].getSettings().deviceId;
                 }
 
-                // if(useSpeaker){
-                //     activeAudioOutputDeviceId = useSpeaker;
-                // }else{
-                //     activeAudioOutputDeviceId = devices.find(device => device.kind === 'audiooutput' && device.deviceId === 'default').deviceId;
-                // }
+                if(useSpeaker){
+                    activeAudioOutputDeviceId = useSpeaker;
+                }else{
+                    activeAudioOutputDeviceId = devices.find(device => device.kind === 'audiooutput' && device.deviceId === 'default').deviceId;
+                }
 
             } catch (error) {
                 console.error('เกิดข้อผิดพลาดในการเรียกดูอุปกรณ์:', error);
             }
 
-            // ไมโครโฟน -- Microphone
-            var old_activeAudioDeviceId ;
+            // เรียกใช้งานเมื่อต้องการเปลี่ยนอุปกรณ์เสียง
+            var old_activeAudioDeviceId;
 
             // เรียกใช้งานเมื่อต้องการเปลี่ยนอุปกรณ์เสียง
-            function onChangeAudioDevice() {
-
+            async function onChangeAudioDevice() {
                 old_activeAudioDeviceId = activeAudioDeviceId;
-                // old_activeAudioOutputDeviceId = activeAudioOutputDeviceId;
 
                 const selectedAudioDeviceId = getCurrentAudioDeviceId();
-                // const selectedAudioOutputDeviceId = getCurrentAudiooutputDeviceId();
-                // console.log('อุปกรณ์เสียงเดิม:', activeAudioDeviceId);
-                // console.log('เปลี่ยนอุปกรณ์เสียงเป็น:', selectedAudioDeviceId);
+                activeAudioDeviceId = selectedAudioDeviceId;
 
-                activeAudioDeviceId = selectedAudioDeviceId ;
+                try {
+                    // ถ้ามี localAudioTrack เดิม ให้หยุดและ unpublish ก่อนสร้างใหม่
+                    if (channelParameters.localAudioTrack) {
+                        await channelParameters.localAudioTrack.setEnabled(false);
+                        await agoraEngine.unpublish([channelParameters.localAudioTrack]);
+                        channelParameters.localAudioTrack.stop();
+                        channelParameters.localAudioTrack.close();
+                    }
 
-                // สร้าง local audio track ใหม่โดยใช้อุปกรณ์ที่คุณต้องการ
-                AgoraRTC.createMicrophoneAudioTrack({
-                    AEC: true, // การยกเลิกเสียงสะท้อน
-                    ANS: true, // การลดเสียงรบกวนอัตโนมัติ
-                    encoderConfig: "high_quality", // ระดับคุณภาพเสียง
-                    microphoneId: selectedAudioDeviceId
-                })
-                .then(newAudioTrack => {
-                    console.log('newAudioTrack');
-                    console.log(newAudioTrack);
-                    // หยุดการส่งเสียงจากอุปกรณ์ปัจจุบัน
-                    channelParameters.localAudioTrack.setEnabled(false);
+                    // สร้าง local audio track ใหม่
+                    const newAudioTrack = await AgoraRTC.createMicrophoneAudioTrack({
+                        AEC: true,
+                        ANS: true,
+                        AGC: true,
+                        encoderConfig: "high_quality",
+                        microphoneId: selectedAudioDeviceId
+                    });
 
-                    agoraEngine.unpublish([channelParameters.localAudioTrack]);
+                    console.log('เปลี่ยนอุปกรณ์เสียงสำเร็จ:', newAudioTrack);
 
-                    // ปิดการเล่นเสียงเดิม
-                    // channelParameters.localAudioTrack.stop();
-                    // channelParameters.localAudioTrack.close();
-
-                    // เปลี่ยน local audio track เป็นอุปกรณ์ใหม่
+                    // ตั้งค่า track ใหม่ให้กับ channel
                     channelParameters.localAudioTrack = newAudioTrack;
 
-                    channelParameters.localAudioTrack.play();
-
-                    if(isAudio == true){
-                        // เริ่มส่งเสียงจากอุปกรณ์ใหม่
-                        channelParameters.localAudioTrack.setEnabled(true);
-                        channelParameters.localAudioTrack.play();
-
-                        agoraEngine.publish([channelParameters.localAudioTrack]);
-
-                        // isAudio = true;
-                        console.log('เปลี่ยนอุปกรณ์เสียงสำเร็จ');
-                        console.log('เข้า if => isAudio == true');
-                        console.log(channelParameters.localAudioTrack);
-                        console.log(agoraEngine);
-
-                    }
-                    else {
-                        channelParameters.localAudioTrack.setEnabled(true);
-                        channelParameters.localAudioTrack.play();
-                        agoraEngine.publish([channelParameters.localAudioTrack]);
-
-                        channelParameters.localAudioTrack.setEnabled(false);
-                        agoraEngine.unpublish([channelParameters.localAudioTrack]);
-                        // channelParameters.localAudioTrack.play();
-                        // isAudio = false;
-
-                        console.log('เปลี่ยนอุปกรณ์เสียงสำเร็จ');
-                        console.log('เข้า else => isAudio == false');
-                        console.log(channelParameters.localAudioTrack);
-                        console.log(agoraEngine);
+                    if (isAudio) {
+                        await newAudioTrack.setEnabled(true);
+                        await agoraEngine.publish([newAudioTrack]);
+                    } else {
+                        await newAudioTrack.setEnabled(false);
                     }
 
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('เกิดข้อผิดพลาดในการสร้าง local audio track:', error);
-
-                    selectedAudioDeviceId = old_activeAudioDeviceId;
-                    selectedAudioOutputDeviceId = old_activeAudioOutputDeviceId;
-                });
+                    activeAudioDeviceId = old_activeAudioDeviceId; // กลับไปใช้อุปกรณ์เดิม
+                }
             }
 
+
             // ลำโพง -- Speaker -- ยังหาฟังก์ชันเปลี่ยนไม่ได้
-            // var old_activeAudioOutputDeviceId ;
-            // function onChangeAudioOutputDevice() {
-            //     old_activeAudioOutputDeviceId = activeAudioOutputDeviceId;
+            var old_activeAudioOutputDeviceId;
 
-            //     const selectedAudioOutputDeviceId = getCurrentAudiooutputDeviceId();
-            //     // console.log('อุปกรณ์เสียงเดิม:', activeAudioDeviceId);
-            //     // console.log('เปลี่ยนอุปกรณ์เสียงเป็น:', selectedAudioDeviceId);
+            // เรียกใช้งานเมื่อต้องการเปลี่ยนอุปกรณ์ลำโพง
+            async function onChangeAudioOutputDevice() {
+                old_activeAudioOutputDeviceId = activeAudioOutputDeviceId;
 
-            //     activeAudioOutputDeviceId = selectedAudioOutputDeviceId;
-            //     // สร้าง local audio track ใหม่โดยใช้อุปกรณ์ที่คุณต้องการ
-            //     AgoraRTC.createSpeakerAudioTrack({
-            //         deviceId: selectedAudioOutputDeviceId,
-            //     })
-            //     .then(newAudioTrack => {
-            //         console.log('newAudioTrack');
-            //         console.log(newAudioTrack);
-            //         // หยุดการส่งเสียงจากอุปกรณ์ปัจจุบัน
-            //         // channelParameters.localAudioTrack.setEnabled(false);
+                const selectedAudioOutputDeviceId = getCurrentAudiooutputDeviceId();
+                activeAudioOutputDeviceId = selectedAudioOutputDeviceId;
 
-            //         // agoraEngine.unpublish([channelParameters.localAudioTrack]);
+                try {
+                    // เปลี่ยนอุปกรณ์ลำโพงโดยใช้ setAudioOutputDevice
+                    await AgoraRTC.setAudioOutputDevice(selectedAudioOutputDeviceId);
+                    console.log('เปลี่ยนอุปกรณ์ลำโพงสำเร็จ:', selectedAudioOutputDeviceId);
+                } catch (error) {
+                    console.error('เกิดข้อผิดพลาดในการเปลี่ยนอุปกรณ์ลำโพง:', error);
+                    activeAudioOutputDeviceId = old_activeAudioOutputDeviceId; // กลับไปใช้อุปกรณ์เดิม
+                }
+            }
 
-            //         // // ปิดการเล่นเสียงเดิม
-            //         // // channelParameters.localAudioTrack.stop();
-            //         // // channelParameters.localAudioTrack.close();
+            var old_activeVideoDeviceId;
 
-            //         // // เปลี่ยน local audio track เป็นอุปกรณ์ใหม่
-            //         // channelParameters.localAudioTrack = newAudioTrack;
-
-            //         // channelParameters.localAudioTrack.play();
-
-            //         // if(isAudio == true){
-            //         //     // เริ่มส่งเสียงจากอุปกรณ์ใหม่
-            //         //     channelParameters.localAudioTrack.setEnabled(true);
-            //         //     channelParameters.localAudioTrack.play();
-
-            //         //     agoraEngine.publish([channelParameters.localAudioTrack]);
-
-            //         //     // isAudio = true;
-            //         //     console.log('เปลี่ยนอุปกรณ์เสียงสำเร็จ');
-            //         //     console.log('เข้า if => isAudio == true');
-            //         //     console.log(channelParameters.localAudioTrack);
-            //         // }
-            //         // else {
-            //         //     channelParameters.localAudioTrack.setEnabled(false);
-            //         //     // channelParameters.localAudioTrack.play();
-            //         //     // isAudio = false;
-            //         //     console.log('เปลี่ยนอุปกรณ์เสียงสำเร็จ');
-            //         //     console.log('เข้า else => isAudio == false');
-            //         //     console.log(channelParameters.localAudioTrack);
-            //         // }
-
-            //     })
-            //     .catch(error => {
-            //         console.error('เกิดข้อผิดพลาดในการสร้าง local audio track:', error);
-
-            //         selectedAudioDeviceId = old_activeAudioDeviceId;
-            //         selectedAudioOutputDeviceId = old_activeAudioOutputDeviceId;
-            //     });
-            // }
-
-            var old_activeVideoDeviceId ;
-
-            function onChangeVideoDevice() {
-
-                old_activeVideoDeviceId = activeVideoDeviceId ;
+            // เรียกใช้งานเมื่อต้องการเปลี่ยนอุปกรณ์กล้อง
+            async function onChangeVideoDevice() {
+                old_activeVideoDeviceId = activeVideoDeviceId;
 
                 const selectedVideoDeviceId = getCurrentVideoDeviceId();
                 console.log('เปลี่ยนอุปกรณ์กล้องเป็น:', selectedVideoDeviceId);
 
-                activeVideoDeviceId = selectedVideoDeviceId ;
+                activeVideoDeviceId = selectedVideoDeviceId;
 
-                // สร้าง local video track ใหม่โดยใช้กล้องที่คุณต้องการ
-                AgoraRTC.createCameraVideoTrack({ cameraId: selectedVideoDeviceId })
-                .then(newVideoTrack => {
+                try {
+                    // สร้าง local video track ใหม่โดยใช้กล้องที่คุณต้องการ
+                    const newVideoTrack = await AgoraRTC.createCameraVideoTrack({
+                        cameraId: selectedVideoDeviceId,
+                        encoderConfig: "720p_30fps", // ตั้งค่าเป็น 720p @ 30fps
+                        optimizationMode: "detail", // โหมดปรับคุณภาพที่เน้นรายละเอียด
+                    });
 
-                    // console.log('------------ newVideoTrack ------------');
-                    // console.log(newVideoTrack);
-                    // console.log('------------ channelParameters.localVideoTrack ------------');
-                    // console.log(channelParameters.localVideoTrack);
-                    // console.log('------------ localPlayerContainer ------------');
-                    // console.log(localPlayerContainer);
-
-                    // // หยุดการส่งภาพจากอุปกรณ์ปัจจุบัน
-                    // channelParameters.localVideoTrack.setEnabled(false);
-
-                    agoraEngine.unpublish([channelParameters.localVideoTrack]);
-                    // console.log('------------unpublish localVideoTrack ------------');
-
-                    // ปิดการเล่นภาพวิดีโอกล้องเดิม
-                    channelParameters.localVideoTrack.stop();
-                    channelParameters.localVideoTrack.close();
+                    // หยุดการส่งภาพจากกล้องปัจจุบัน
+                    if (channelParameters.localVideoTrack) {
+                        channelParameters.localVideoTrack.stop();
+                        channelParameters.localVideoTrack.close();
+                        await agoraEngine.unpublish([channelParameters.localVideoTrack]);
+                    }
 
                     // เปลี่ยน local video track เป็นอุปกรณ์ใหม่
                     channelParameters.localVideoTrack = newVideoTrack;
 
-                    if (isVideo == true) {
+                    if (isVideo) {
                         // เริ่มส่งภาพจากอุปกรณ์ใหม่
                         channelParameters.localVideoTrack.setEnabled(true);
                         // แสดงภาพวิดีโอใน <div>
                         channelParameters.localVideoTrack.play(localPlayerContainer);
-                        // channelParameters.remoteVideoTrack.play(remotePlayerContainer);
-                        agoraEngine.publish([channelParameters.localVideoTrack]);
-                        // console.log('เปลี่ยนอุปกรณ์กล้องสำเร็จ');
-                    }
-                    else {
-                        // alert('ปิด');
+                        await agoraEngine.publish([channelParameters.localVideoTrack]);
+                    } else {
+                        // ปิดการแสดงภาพวิดีโอ
                         channelParameters.localVideoTrack.setEnabled(false);
-
                         channelParameters.localVideoTrack.play(localPlayerContainer);
-                        agoraEngine.publish([channelParameters.localVideoTrack]);
+                        await agoraEngine.publish([channelParameters.localVideoTrack]);
                     }
 
-                    if (isVideo == false) {
+                    // การเปลี่ยนพื้นหลัง (bg_local) เมื่อ video ปิด
+                    if (!isVideo) {
                         setTimeout(() => {
                             console.log("bg_local onChange");
-                            changeBgColor(bg_local);
+                            // changeBgColor(bg_local);
                         }, 50);
                     }
 
-                })
-                .catch(error => {
-                    // alert('ไม่สามารถเปลี่ยนกล้องได้');
-                    // alertNoti('<i class="fa-solid fa-triangle-exclamation fa-shake"></i>', 'ไม่สามารถเปลี่ยนกล้องได้');
-                    console.log('ไม่สามารถเปลี่ยนกล้องได้');
+                } catch (error) {
+                    console.error('ไม่สามารถเปลี่ยนกล้องได้:', error);
+                    activeVideoDeviceId = old_activeVideoDeviceId;
 
-                    activeVideoDeviceId = old_activeVideoDeviceId ;
-
-                    // setTimeout(function() {
-                    //     document.querySelector('#btn_switchCamera').click();
-                    // }, 2000);
-
-                    console.error('เกิดข้อผิดพลาดในการสร้าง local video track:', error);
-
-                    if (isVideo == false) {
+                    if (!isVideo) {
                         setTimeout(() => {
                             console.log("bg_local ddddddddddddddddddddddd");
-                            changeBgColor(bg_local);
+                            // changeBgColor(bg_local);
                         }, 50);
                     }
-                });
-
-                // document.querySelector('#ปุ่มนี้สำหรับปิด_modal').click();
+                }
             }
 
             function getCurrentAudioDeviceId() {
@@ -1079,15 +1085,15 @@
                 return null;
             }
 
-            // function getCurrentAudiooutputDeviceId() {
-            //     const audiooutputDevices = document.getElementsByName('audio-device-output');
-            //     for (let i = 0; i < audiooutputDevices.length; i++) {
-            //         if (audiooutputDevices[i].checked) {
-            //             return audiooutputDevices[i].value;
-            //         }
-            //     }
-            //     return null;
-            // }
+            function getCurrentAudiooutputDeviceId() {
+                const audiooutputDevices = document.getElementsByName('audio-device-output');
+                for (let i = 0; i < audiooutputDevices.length; i++) {
+                    if (audiooutputDevices[i].checked) {
+                        return audiooutputDevices[i].value;
+                    }
+                }
+                return null;
+            }
 
             function getCurrentVideoDeviceId() {
                 const videoDevices = document.getElementsByName('video-device');
@@ -1102,29 +1108,28 @@
             var now_Mobile_Devices = 1;
             var cachedVideoDevices = null; // สร้างตัวแปร global เพื่อเก็บข้อมูล camera
 
-            btn_switchCamera.onclick = async function()
-            {
-                // console.log('btn_switchCamera');
-                // console.log('activeVideoDeviceId');
-                // console.log(activeVideoDeviceId);
-
+            btn_switchCamera.onclick = async function() {
                 // เรียกใช้ฟังก์ชันและแสดงผลลัพธ์
                 let deviceType = checkDeviceType();
-                // console.log("Device Type:", deviceType);
 
                 // ถ้ายังไม่มีข้อมูลอุปกรณ์ที่เก็บไว้
                 if (!cachedVideoDevices) {
-                    // เรียกดูอุปกรณ์ทั้งหมด
-                    let getDevices = await navigator.mediaDevices.enumerateDevices();
+                    try {
+                        // เรียกดูอุปกรณ์ทั้งหมด
+                        let getDevices = await navigator.mediaDevices.enumerateDevices();
 
-                    // แยกอุปกรณ์ตามประเภท
-                    let getVideoDevices = getDevices.filter(device => device.kind === 'videoinput');
+                        // แยกอุปกรณ์ตามประเภท
+                        let getVideoDevices = getDevices.filter(device => device.kind === 'videoinput');
 
-                    // กำหนดค่าให้กับตัวแปร global เพื่อเก็บไว้
-                    cachedVideoDevices = getVideoDevices;
+                        // กำหนดค่าให้กับตัวแปร global เพื่อเก็บไว้
+                        cachedVideoDevices = getVideoDevices;
+                    } catch (error) {
+                        console.error('ไม่สามารถดึงข้อมูลอุปกรณ์ได้:', error);
+                        return;
+                    }
                 }
 
-                let videoDevices = cachedVideoDevices; // สามารถใช้ cachedVideoDevices ได้ทุกครั้งที่ต้องการ
+                let videoDevices = cachedVideoDevices; // ใช้ cachedVideoDevices ได้ทุกครั้งที่ต้องการ
 
                 console.log('------- videoDevices -------');
                 console.log(videoDevices);
@@ -1133,70 +1138,67 @@
 
                 // สร้างรายการอุปกรณ์ส่งข้อมูลและเพิ่มลงในรายการ
                 let videoDeviceList = document.getElementById('video-device-list');
-                    videoDeviceList.innerHTML = '';
+                videoDeviceList.innerHTML = ''; // เคลียร์รายการเก่า
+
                 let deviceText = document.createElement('li');
-                    deviceText.classList.add('text-center','p-1','text-white');
-                    deviceText.appendChild(document.createTextNode("กล้อง"));
+                deviceText.classList.add('text-center','p-1','text-white');
+                deviceText.appendChild(document.createTextNode("กล้อง"));
 
-                    videoDeviceList.appendChild(deviceText);
+                videoDeviceList.appendChild(deviceText);
 
-                let count_i = 1 ;
+                let count_i = 1;
 
                 videoDevices.forEach(device => {
                     let radio = document.createElement('input');
-                        radio.type = 'radio';
-                        radio.classList.add('radio_style');
-                        radio.id = 'video-device-' + count_i;
-                        radio.name = 'video-device';
-                        radio.value = device.deviceId;
+                    radio.type = 'radio';
+                    radio.classList.add('radio_style');
+                    radio.id = 'video-device-' + count_i;
+                    radio.name = 'video-device';
+                    radio.value = device.deviceId;
 
-                    if (deviceType == 'PC'){
+                    if (deviceType === 'PC') {
                         radio.checked = device.deviceId === activeVideoDeviceId;
                     }
 
                     let label = document.createElement('li');
-                        label.classList.add('ui-list-item');
-                        label.appendChild(document.createTextNode(device.label || `อุปกรณ์ส่งข้อมูล ${videoDeviceList.children.length + 1}`));
-                        label.appendChild(document.createTextNode("\u00A0")); // เพิ่ม non-breaking space
-                        label.appendChild(radio);
+                    label.classList.add('ui-list-item');
+                    label.appendChild(document.createTextNode(device.label || `อุปกรณ์ส่งข้อมูล ${videoDeviceList.children.length + 1}`));
+                    label.appendChild(document.createTextNode("\u00A0")); // เพิ่ม non-breaking space
+                    label.appendChild(radio);
 
-                    if (deviceType == 'PC'){
-                        // สร้างเหตุการณ์คลิกที่ label เพื่อตรวจสอบ radio2
-                        label.addEventListener('click', () => {
-                            radio.checked = true;
-                            onChangeVideoDevice();
-                        });
-                    }
+                    // เพิ่ม event listener เมื่อคลิกที่ label
+                    label.addEventListener('click', () => {
+                        radio.checked = true;
+                        onChangeVideoDevice();
+                    });
 
                     videoDeviceList.appendChild(label);
 
                     radio.addEventListener('change', onChangeVideoDevice);
 
-                    count_i = count_i + 1 ;
+                    count_i++;
                 });
 
-                // ---------------------------
-
-                if (deviceType !== 'PC'){
+                // --------------------------- สำหรับอุปกรณ์มือถือ
+                if (deviceType !== 'PC') {
                     let check_videoDevices = document.getElementsByName('video-device');
 
-                    if (now_Mobile_Devices == 1){
-                        // console.log("now_Mobile_Devices == 1 // ให้คลิก ");
-                        // console.log(check_videoDevices[1].id);
-                        document.querySelector('#'+check_videoDevices[1].id).click();
-                        now_Mobile_Devices = 2 ;
-                    }else{
-                        // console.log("now_Mobile_Devices == 2 // ให้คลิก ");
-                        // console.log(check_videoDevices[0].id);
-                        document.querySelector('#'+check_videoDevices[0].id).click();
-                        now_Mobile_Devices = 1 ;
+                    if (now_Mobile_Devices === 1) {
+                        // สลับกล้องมือถือ
+                        document.querySelector('#' + check_videoDevices[1].id).click();
+                        now_Mobile_Devices = 2;
+                    } else {
+                        document.querySelector('#' + check_videoDevices[0].id).click();
+                        now_Mobile_Devices = 1;
                     }
                 }
+            };
 
-            }
-            var cachedAudioDevices = null; // สร้างตัวแปร global เพื่อเก็บข้อมูล microphone
-            btn_switchMicrophone.onclick = async function()
-            {
+
+            var cachedAudioDevices = null; // ตัวแปร global สำหรับเก็บข้อมูลไมโครโฟน
+            var cachedAudioOutputDevices = null; // ตัวแปร global สำหรับเก็บข้อมูลลำโพง
+
+            btn_switchMicrophone.onclick = async function() {
                 // console.log('btn_switchMicrophone');
                 // console.log('activeAudioDeviceId');
                 // console.log(activeAudioDeviceId);
@@ -1206,31 +1208,40 @@
                 console.log("Device Type:", deviceType);
 
                 // ถ้ายังไม่มีข้อมูลอุปกรณ์ที่เก็บไว้
-                if (!cachedAudioDevices) {
+                if (!cachedAudioDevices || !cachedAudioOutputDevices) {
                     // เรียกดูอุปกรณ์ทั้งหมด
                     let getDevices = await navigator.mediaDevices.enumerateDevices();
+
                     // แยกอุปกรณ์ตามประเภท
                     let getAudioDevices = getDevices.filter(device => device.kind === 'audioinput');
+                    let getAudioOutputDevices = getDevices.filter(device => device.kind === 'audiooutput');
 
-                    // กำหนดค่าให้กับตัวแปร global เพื่อเก็บไว้
+                    // เก็บข้อมูลอุปกรณ์ไว้
                     cachedAudioDevices = getAudioDevices;
+                    cachedAudioOutputDevices = getAudioOutputDevices;
                 }
 
-                let audioDevices = cachedAudioDevices; // สามารถใช้ cachedAudioDevices ได้ทุกครั้งที่ต้องการ
-                // แยกอุปกรณ์ตามประเภท --> ลำโพง
-                // let audioOutputDevices = devices.filter(device => device.kind === 'audiooutput');
+                let audioDevices = cachedAudioDevices; // ไมโครโฟน
+                let audioOutputDevices = cachedAudioOutputDevices; // ลำโพง
 
-                console.log('------- audioDevices -------');
+                console.log('------- audioDevices (ไมโครโฟน) -------');
                 console.log(audioDevices);
                 console.log('length ==>> ' + audioDevices.length);
                 console.log('------- ------- -------');
 
+                console.log('------- audioOutputDevices (ลำโพง) -------');
+                console.log(audioOutputDevices);
+                console.log('length ==>> ' + audioOutputDevices.length);
+                console.log('------- ------- -------');
+
                 // สร้างรายการอุปกรณ์ส่งข้อมูลและเพิ่มลงในรายการ
                 let audioDeviceList = document.getElementById('audio-device-list');
-                    audioDeviceList.innerHTML = '';
+                audioDeviceList.innerHTML = ''; // เคลียร์รายการเก่า
+
+                // แสดงรายการไมโครโฟน
                 let deviceText = document.createElement('li');
-                    deviceText.classList.add('text-center','p-1','text-white');
-                    deviceText.appendChild(document.createTextNode("อุปกรณ์รับข้อมูล"));
+                deviceText.classList.add('text-center', 'p-1', 'text-white');
+                deviceText.appendChild(document.createTextNode("ไมโครโฟน"));
 
                 //============================================ ส่วนของ การปรับระดับเสียง(optional)=====================================================================================
 
@@ -1239,16 +1250,18 @@
                 let localAudioVolumeLabel = `<label class="ui-list-item d-block" for="localAudioVolume" >
                                                 <li class="text-center p-1 text-white d-block" style="font-size: 1.1em;">ระดับเสียงไมค์(ตัวเอง)</li>
                                                 <input type="range" id="localAudioVolume" min="0" max="1000" value="`+localVolume+`" class="w-100">
-                                            </label>`
+                                            </label>
+                                            <hr style="border-top:1px solid #ccc; margin:10px 0;">
+                                            `
 
                 audioDeviceList.insertAdjacentHTML('afterbegin', localAudioVolumeLabel); // แทรกบนสุด
 
-                let remoteAudioVolumeLabel = `<label class="ui-list-item d-none" for="remoteAudioVolume" >
-                                                <li class="text-center p-1 text-white d-block" style="font-size: 1.1em;">เสียงที่เราได้ยิน</li>
-                                                <input type="range" id="remoteAudioVolume" min="0" max="100" value="`+remoteVolume+`" class="w-100">
-                                            </label>`
+                // let remoteAudioVolumeLabel = `<label class="ui-list-item d-none" for="remoteAudioVolume" >
+                //                                 <li class="text-center p-1 text-white d-block" style="font-size: 1.1em;">เสียงที่เราได้ยิน</li>
+                //                                 <input type="range" id="remoteAudioVolume" min="0" max="100" value="`+remoteVolume+`" class="w-100">
+                //                             </label>`
 
-                audioDeviceList.insertAdjacentHTML('afterbegin', remoteAudioVolumeLabel); // แทรกบนสุด
+                // audioDeviceList.insertAdjacentHTML('afterbegin', remoteAudioVolumeLabel); // แทรกบนสุด
 
                 // เข้าถึงตัวปรับ input =============== localVolume ==========================
                 let local_rangeInput = document.getElementById('localAudioVolume');
@@ -1271,12 +1284,12 @@
                 });
 
                 // เข้าถึงตัวปรับ input =============== remoteVolume ==========================
-                let remote_rangeInput = document.getElementById('remoteAudioVolume');
-                remote_rangeInput.addEventListener('input', function() {
-                // บันทึกค่าลงใน remoteStorage เมื่อมีการเปลี่ยนแปลง
-                    localStorage.setItem('remote_rangeValue', remote_rangeInput.value);
-                    remoteVolume = remote_rangeInput.value; // เปลี่ยนค่าระดับเสียงของทางฝั่งตรงข้ามให้เท่ากับตัวปรับ
-                });
+                // let remote_rangeInput = document.getElementById('remoteAudioVolume');
+                // remote_rangeInput.addEventListener('input', function() {
+                // // บันทึกค่าลงใน remoteStorage เมื่อมีการเปลี่ยนแปลง
+                //     localStorage.setItem('remote_rangeValue', remote_rangeInput.value);
+                //     remoteVolume = remote_rangeInput.value; // เปลี่ยนค่าระดับเสียงของทางฝั่งตรงข้ามให้เท่ากับตัวปรับ
+                // });
 
                 let localVolumeFromStorage = localStorage.getItem('local_sos_1669_rangeValue');
                 // let remoteVolumeFromStorage = localStorage.getItem('remote_rangeValue');
@@ -1314,81 +1327,94 @@
                 //=================================================================================================================================
 
                 audioDeviceList.appendChild(deviceText);
-                // let audiooutputDeviceList = document.getElementById('audio-device-output-list');
-                //     audiooutputDeviceList.innerHTML = '';
 
-                let count_i = 1 ;
-                let count_i_output = 1 ;
-                // ----------- Input ----------------
+                let count_i = 1;
+
+                // เพิ่มรายการไมโครโฟน
                 audioDevices.forEach(device => {
                     const radio2 = document.createElement('input');
-                        radio2.type = 'radio';
-                        radio2.classList.add('radio_style');
-                        radio2.id = 'audio-device-' + count_i;
-                        radio2.name = 'audio-device';
-                        radio2.value = device.deviceId;
+                    radio2.type = 'radio';
+                    radio2.classList.add('radio_style');
+                    radio2.id = 'audio-device-' + count_i;
+                    radio2.name = 'audio-device';
+                    radio2.value = device.deviceId;
 
-                    if (deviceType == 'PC'){
+                    if (deviceType === 'PC') {
                         radio2.checked = device.deviceId === activeAudioDeviceId;
                     }
 
                     let label = document.createElement('li');
-                        label.classList.add('ui-list-item');
-                        label.appendChild(document.createTextNode(device.label || `อุปกรณ์รับข้อมูล ${audioDeviceList.children.length + 1}`));
-                        label.appendChild(document.createTextNode("\u00A0")); // เพิ่ม non-breaking space
-                        label.appendChild(radio2);
+                    label.classList.add('ui-list-item');
+                    label.appendChild(document.createTextNode(device.label || `ไมโครโฟน ${count_i}`));
+                    label.appendChild(document.createTextNode("\u00A0")); // เพิ่ม non-breaking space
+                    label.appendChild(radio2);
 
-                        // สร้างเหตุการณ์คลิกที่ label เพื่อตรวจสอบ radio2
-                        label.addEventListener('click', () => {
-                            radio2.checked = true;
-                            onChangeAudioDevice();
-                        });
-
+                    // สร้างเหตุการณ์คลิกที่ label เพื่อตรวจสอบ radio2
+                    label.addEventListener('click', () => {
+                        radio2.checked = true;
+                        onChangeAudioDevice();
+                    });
 
                     audioDeviceList.appendChild(label);
                     radio2.addEventListener('change', onChangeAudioDevice);
 
-                    count_i = count_i + 1 ;
+                    count_i++;
                 });
 
-                // let hr = document.createElement('hr');
-                // audioDeviceList.appendChild(hr);
+                // เพิ่มเส้นแบ่งก่อนหัวข้อ "ลำโพง"
+                let divider_2 = document.createElement('hr');
+                divider_2.style.borderTop = '1px solid #ccc';
+                divider_2.style.margin = '10px 0';
 
-                // ----------- Output ----------------
-                // audioOutputDevices.forEach(device => {
-                // const radio3 = document.createElement('input');
-                //     radio3.type = 'radio';
-                //     radio3.id = 'audio-device-output-' + count_i_output;
-                //     radio3.name = 'audio-device-output';
-                //     radio3.value = device.deviceId;
+                audioDeviceList.appendChild(divider_2);
 
-                // if (deviceType == 'PC'){
-                //     radio3.checked = device.deviceId === activeAudioOutputDeviceId;
-                // }
+                // เพิ่มรายการลำโพง
+                let outputDeviceText = document.createElement('li');
+                outputDeviceText.classList.add('text-center', 'p-1', 'text-white');
+                outputDeviceText.appendChild(document.createTextNode("ลำโพง"));
+                audioDeviceList.appendChild(outputDeviceText);
 
-                // let label_output = document.createElement('label');
-                //     label_output.classList.add('dropdown-item');
-                //     label_output.appendChild(radio3);
-                //     label_output.appendChild(document.createTextNode(device.label || `อุปกรณ์ส่งข้อมูล ${audioDeviceList.children.length + 1}`));
+                let count_i_output = 1;
 
-                // audiooutputDeviceList.appendChild(label_output);
-                // radio3.addEventListener('change', onChangeAudioOutputDevice);
+                // เพิ่มรายการลำโพง
+                audioOutputDevices.forEach(device => {
+                    const radio3 = document.createElement('input');
+                    radio3.type = 'radio';
+                    radio3.classList.add('radio_style');
+                    radio3.id = 'audio-output-device-' + count_i_output;
+                    radio3.name = 'audio-output-device';
+                    radio3.value = device.deviceId;
 
-                // count_i_output = count_i_output + 1 ;
-                // });
+                    if (deviceType === 'PC') {
+                        radio3.checked = device.deviceId === activeAudioOutputDeviceId;
+                    }
 
-                // ---------------------------7
+                    let label_output = document.createElement('li');
+                    label_output.classList.add('ui-list-item');
+                    label_output.appendChild(document.createTextNode(device.label || `ลำโพง ${count_i_output}`));
+                    label_output.appendChild(document.createTextNode("\u00A0")); // เพิ่ม non-breaking space
+                    label_output.appendChild(radio3);
 
-                // เพิ่มเหตุการณ์คลิกที่หน้าจอที่ไม่ใช่ตัว audio-device-list ให้ปิด audio-device-list
+                    // สร้างเหตุการณ์คลิกที่ label เพื่อตรวจสอบ radio3
+                    label_output.addEventListener('click', () => {
+                        radio3.checked = true;
+                        onChangeAudioOutputDevice();
+                    });
+
+                    audioDeviceList.appendChild(label_output);
+                    radio3.addEventListener('change', onChangeAudioOutputDevice);
+
+                    count_i_output++;
+                });
+
+                // เพิ่มเหตุการณ์คลิกที่หน้าจอที่ไม่ใช่ตัว audio-device-list เพื่อปิด audio-device-list
                 // document.addEventListener('click', (event) => {
                 //     const target = event.target;
-
                 //     if (!target.closest('#audio-device-list')) {
-                //        document.querySelector('.dropcontent').classList.toggle('open');
+                //         document.querySelector('.dropcontent').classList.toggle('open');
                 //     }
                 // });
-
-            }
+            };
 
             // ตรวจสอบอุปกรณ์ที่ใช้งาน
             function checkDeviceType() {
