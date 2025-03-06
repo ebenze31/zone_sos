@@ -123,8 +123,8 @@
                     </div>
                 </div>
 
-                @if (Auth::user()->id == 1 || Auth::user()->id == 2 || Auth::user()->id == 64 || Auth::user()->id == 11003429 || Auth::user()->id == 11003473)
-                    <button class="btn btnSpecial d-non" id="addButton" onclick="createAndAttachCustomDiv();">
+                @if (Auth::user()->id == 1 || Auth::user()->id == 64 || Auth::user()->id == 11003429 || Auth::user()->id == 11003473)
+                    <button class="btn btnSpecial d-non" id="addButton" onclick="createVideoCard();">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 @endif
@@ -199,10 +199,7 @@
         var remoteVolume = localStorage.getItem('remote_rangeValue') ?? 70; // ค่าสำหรับเลือกระดับเสียงที่ได้ยินจากทุกคน
         var array_remoteVolumeAudio = [];
 
-        var agoraEngine;
-
         var checkHtml = false; // ใช้เช็คเงื่อนไขตัวปรับเสียงของ remote
-
 
 
         let channelParameters =
@@ -278,11 +275,7 @@
                     }
                     checkAndNotifyExpiration(expirationTimestamp); // เรียกใช้ฟังก์ชันนี้ครั้งเดียวหลังจากโหลด Token
 
-                    // ซ่อน Loading เมื่อโหลดเสร็จ
-                    if (loadingAnime) {
-                        loadingAnime.classList.add('d-none');
-                    }
-                        //เริ่มทำการสร้าง channel Video_call
+                    //เริ่มทำการสร้าง channel Video_call
                     startBasicCall();
                     setTimeout(() => {
                         document.getElementById("join").click();
@@ -361,7 +354,11 @@
         {
             // Create an instance of the Agora Engine
 
-            agoraEngine = AgoraRTC.createClient({ mode: "rtc", codec: "vp9" });
+            agoraEngine = AgoraRTC.createClient({
+                mode: "rtc",
+                codec: "vp9",
+                connectTimeout: 10000 // เพิ่ม Timeout เป็น 10 วินาที
+            });
             // console.log("agoraEngine");
             // console.log(agoraEngine);
             let rtcStats = agoraEngine.getRTCStats();
@@ -418,6 +415,12 @@
                 console.log("subscribe success");
                 // console.log("user");
                 // console.log(user);
+
+                // สำหรับปรับลดคุณภาพสตรีมวิดีโอของผู้ใช้ uid เมื่อเครือข่ายไม่เสถียร หรือมีปัญหาด้านแบนด์วิดท์
+                    // 0 → ไม่ลดคุณภาพ (รับวิดีโอเต็มคุณภาพเสมอ ไม่ว่าเน็ตจะแย่แค่ไหน
+                    // 1 → ลดวิดีโอเป็นเสียง (ถ้าเน็ตแย่ ลดคุณภาพจนเหลือแค่เสียง)
+                    // 2 → ลดคุณภาพวิดีโอแต่ไม่ปิดเสียง (ลดจาก HD → SD → ต่ำสุด แต่ยังมีวิดีโอ)
+                agoraEngine.setStreamFallbackOption(channelParameters.remoteUid, 2);
 
                 // setTimeout(() => {
                 //     StatsVideoUpdate();
@@ -495,9 +498,6 @@
 
                     // channelParameters.remoteVideoTrack.play(remotePlayerContainer);
 
-                    // Set a stream fallback option to automatically switch remote video quality when network conditions degrade.
-                    agoraEngine.setStreamFallbackOption(channelParameters.remoteUid, 1);
-
                 }
 
                 if (mediaType == "audio")
@@ -506,6 +506,8 @@
                     channelParameters.remoteAudioTrack.play();
 
                     channelParameters.remoteAudioTrack.setVolume(parseInt(array_remoteVolumeAudio[user.uid]));
+
+                    onChangeAudioOutputDevice();
 
                     if(user.hasAudio == false){
                         // เปลี่ยน ไอคอนไมโครโฟนเป็น ปิด
@@ -620,43 +622,43 @@
                         }
 
                         // 🔍 ฟังก์ชันช่วยในการหาไมโครโฟนที่ใช้งานได้
-                        async function getActiveMicrophoneId() {
-                            try {
-                                let devices = await navigator.mediaDevices.enumerateDevices();
-                                let microphones = devices.filter(device => device.kind === 'audioinput' && device.deviceId !== 'default');
+                        // async function getActiveMicrophoneId() {
+                        //     try {
+                        //         let devices = await navigator.mediaDevices.enumerateDevices();
+                        //         let microphones = devices.filter(device => device.kind === 'audioinput' && device.deviceId !== 'default');
 
-                                return microphones.length > 0 ? microphones[0].deviceId : null;
+                        //         return microphones.length > 0 ? microphones[0].deviceId : null;
 
-                            } catch (error) {
-                                console.error("❌ ไม่สามารถดึงข้อมูลไมโครโฟนได้:", error);
-                                return null;
-                            }
-                        }
+                        //     } catch (error) {
+                        //         console.error("❌ ไม่สามารถดึงข้อมูลไมโครโฟนได้:", error);
+                        //         return null;
+                        //     }
+                        // }
 
-                        // ฟังก์ชันเปลี่ยนอุปกรณ์ลำโพง
-                        async function updateSpeaker(selectedSpeakerId) {
-                            try {
-                                // ตั้งค่าอุปกรณ์ลำโพงที่เลือก
-                                await AgoraRTC.setAudioOutputDevice(selectedSpeakerId);
-                                console.log("🔊 ลำโพงพร้อมใช้งาน:", selectedSpeakerId);
-                            } catch (error) {
-                                console.error("❌ เกิดข้อผิดพลาดในการตั้งค่าลำโพง:", error);
-                            }
-                        }
+                        // // ฟังก์ชันเปลี่ยนอุปกรณ์ลำโพง
+                        // async function updateSpeaker(selectedSpeakerId) {
+                        //     try {
+                        //         // ตั้งค่าอุปกรณ์ลำโพงที่เลือก
+                        //         await AgoraRTC.setAudioOutputDevice(selectedSpeakerId);
+                        //         console.log("🔊 ลำโพงพร้อมใช้งาน:", selectedSpeakerId);
+                        //     } catch (error) {
+                        //         console.error("❌ เกิดข้อผิดพลาดในการตั้งค่าลำโพง:", error);
+                        //     }
+                        // }
 
-                        // ฟังก์ชันช่วยในการหาลำโพงที่ใช้งานได้
-                        async function getActiveSpeakerId() {
-                            try {
-                                let devices = await navigator.mediaDevices.enumerateDevices();
-                                let speakers = devices.filter(device => device.kind === 'audiooutput' && device.deviceId !== 'default');
+                        // // ฟังก์ชันช่วยในการหาลำโพงที่ใช้งานได้
+                        // async function getActiveSpeakerId() {
+                        //     try {
+                        //         let devices = await navigator.mediaDevices.enumerateDevices();
+                        //         let speakers = devices.filter(device => device.kind === 'audiooutput' && device.deviceId !== 'default');
 
-                                return speakers.length > 0 ? speakers[0].deviceId : null;
+                        //         return speakers.length > 0 ? speakers[0].deviceId : null;
 
-                            } catch (error) {
-                                console.error("❌ ไม่สามารถดึงข้อมูลลำโพงได้:", error);
-                                return null;
-                            }
-                        }
+                        //     } catch (error) {
+                        //         console.error("❌ ไม่สามารถดึงข้อมูลลำโพงได้:", error);
+                        //         return null;
+                        //     }
+                        // }
 
                         // หากล้อง
                         try {
@@ -670,7 +672,7 @@
                             // สร้าง local video track พร้อมตัวเลือกที่เหมาะสม
                             channelParameters.localVideoTrack = await AgoraRTC.createCameraVideoTrack({
                                 cameraId: cameraId,
-                                encoderConfig: "720p_30fps", // ตั้งค่าเป็น 720p @ 30fps
+                                encoderConfig: "720p_30fps",
                                 optimizationMode: "detail", // โหมดปรับคุณภาพที่เน้นรายละเอียด
                             });
 
@@ -756,9 +758,6 @@
                         create_element_localvideo_call(localPlayerContainer, name_local, type_local, profile_local, bg_local);
                         // Play the local video track.
                         channelParameters.localVideoTrack.play(localPlayerContainer);
-                        // เอาหน้าโหลดออก
-                        document.querySelector('#lds-ring').remove();
-
 
                         // ✅ ตรวจสอบจำนวนสมาชิกในห้อง
                         // handleRoomMemberUpdate(result);
@@ -836,6 +835,9 @@
 
                         // console.log('AudioTrack:');
                         // console.log(channelParameters.localAudioTrack);
+
+                        // เอาหน้าโหลดออก
+                        document.querySelector('#lds-ring').remove();
 
                     }else{
                         alert("จำนวนผู้ใช้ในห้องสนทนาสูงสุดแล้ว");
@@ -991,26 +993,68 @@
                 }
             }
 
+            // --------------------------  เปลี่ยนลำโพง ---------------------------------------------
 
-            // ลำโพง -- Speaker -- ยังหาฟังก์ชันเปลี่ยนไม่ได้
-            var old_activeAudioOutputDeviceId;
-
-            // เรียกใช้งานเมื่อต้องการเปลี่ยนอุปกรณ์ลำโพง
             async function onChangeAudioOutputDevice() {
                 old_activeAudioOutputDeviceId = activeAudioOutputDeviceId;
-
                 const selectedAudioOutputDeviceId = getCurrentAudiooutputDeviceId();
                 activeAudioOutputDeviceId = selectedAudioOutputDeviceId;
 
                 try {
-                    // เปลี่ยนอุปกรณ์ลำโพงโดยใช้ setAudioOutputDevice
-                    await AgoraRTC.setAudioOutputDevice(selectedAudioOutputDeviceId);
-                    console.log('เปลี่ยนอุปกรณ์ลำโพงสำเร็จ:', selectedAudioOutputDeviceId);
+                    // วนลูปทุก Remote User และเปลี่ยน audio track
+                    Object.keys(remotePlayerContainer).forEach(async (uid) => {
+                        let user = agoraEngine.remoteUsers.find(u => u.uid == uid);
+                        if (user && user.audioTrack) {
+                            await changeAudioOutputForRemoteUser(uid, user.audioTrack, selectedAudioOutputDeviceId);
+                        }
+                    });
+
+                    console.log("🔊 เปลี่ยนลำโพงสำเร็จสำหรับทุก Remote Users เป็น:", selectedAudioOutputDeviceId);
                 } catch (error) {
-                    console.error('เกิดข้อผิดพลาดในการเปลี่ยนอุปกรณ์ลำโพง:', error);
-                    activeAudioOutputDeviceId = old_activeAudioOutputDeviceId; // กลับไปใช้อุปกรณ์เดิม
+                    console.error("❌ ไม่สามารถเปลี่ยนลำโพงของ Remote Users:", error);
+                    activeAudioOutputDeviceId = old_activeAudioOutputDeviceId; // กลับไปใช้อุปกรณ์เดิมถ้าเกิดข้อผิดพลาด
                 }
             }
+
+            // 🎧 ฟังก์ชันเปลี่ยนลำโพงโดยใช้ createCustomAudioTrack
+            async function changeAudioOutputForRemoteUser(remoteUid, originalAudioTrack, speakerDeviceId) {
+                try {
+                    if (!originalAudioTrack) {
+                        console.warn(`❌ ไม่มี audio track จาก remote user: ${remoteUid}`);
+                        return;
+                    }
+
+                    // 🔄 สร้าง custom audio track จาก track ของ Remote User
+                    const processedAudioTrack = await AgoraRTC.createCustomAudioTrack({
+                        mediaStreamTrack: originalAudioTrack.getMediaStreamTrack()
+                    });
+
+                    // ค้นหา <audio> element เดิม หรือสร้างใหม่
+                    let audioElement = document.getElementById(`audio-${remoteUid}`);
+                    if (!audioElement) {
+                        audioElement = document.createElement("audio");
+                        audioElement.id = `audio-${remoteUid}`;
+                        audioElement.autoplay = true;
+                        document.body.appendChild(audioElement);
+                    }
+
+                    // ตั้งค่าให้เล่นเสียงจาก Remote User
+                    processedAudioTrack.play(audioElement);
+
+                    // เปลี่ยนอุปกรณ์ลำโพง
+                    if (typeof audioElement.setSinkId === "function") {
+                        await audioElement.setSinkId(speakerDeviceId);
+                        console.log(`🔊 เปลี่ยนลำโพงสำเร็จให้กับ UID: ${remoteUid}, Speaker: ${speakerDeviceId}`);
+                    } else {
+                        console.warn(`❌ Browser ไม่รองรับ setSinkId() สำหรับ UID: ${remoteUid}`);
+                    }
+                } catch (error) {
+                    console.error(`❌ ไม่สามารถเปลี่ยนลำโพงของ Remote User ${remoteUid}:`, error);
+                }
+            }
+
+
+            // --------------------------จบส่วน เปลี่ยนลำโพง ---------------------------------------------
 
             var old_activeVideoDeviceId;
 
@@ -1027,7 +1071,7 @@
                     // สร้าง local video track ใหม่โดยใช้กล้องที่คุณต้องการ
                     const newVideoTrack = await AgoraRTC.createCameraVideoTrack({
                         cameraId: selectedVideoDeviceId,
-                        encoderConfig: "720p_30fps", // ตั้งค่าเป็น 720p @ 30fps
+                        encoderConfig: "720p_30fps",
                         optimizationMode: "detail", // โหมดปรับคุณภาพที่เน้นรายละเอียด
                     });
 
@@ -1086,7 +1130,7 @@
             }
 
             function getCurrentAudiooutputDeviceId() {
-                const audiooutputDevices = document.getElementsByName('audio-device-output');
+                const audiooutputDevices = document.getElementsByName('audio-output-device');
                 for (let i = 0; i < audiooutputDevices.length; i++) {
                     if (audiooutputDevices[i].checked) {
                         return audiooutputDevices[i].value;
@@ -1538,7 +1582,7 @@
             }
         });
 
-        function createAndAttachCustomDiv() {
+        function createVideoCard() {
             let randomColor = "##4d4d4d";
                 randomColor = getRandomColor();
 

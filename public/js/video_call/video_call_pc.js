@@ -236,6 +236,7 @@ function create_element_localvideo_call(localPlayerContainer ,name_local ,type_l
 
 // สำหรับ Div ต่างๆของ Remote ตอน published
 function create_element_remotevideo_call(remotePlayerContainer, name_remote , type_remote , bg_remote, user) {
+
     if(remotePlayerContainer.id){
         console.log("remotePlayerContainer");
         console.log(remotePlayerContainer);
