@@ -14,7 +14,7 @@
     <div class="sidebar" id="sidebar">
         <button id="join" class="btn btn-success d-none" >เข้าร่วม</button> <!-- ปุ่ม join สำหรับเริ่ม video call ของตัวเอง --ซ่อนไว้ -->
 
-        <div id="users_in_sidebar">
+        <div id="users_in_sidebar" class="users_in_sidebar">
 
         </div>
     </div>
@@ -91,11 +91,6 @@
             </button> --}}
         </div>
         <div class="center">
-            {{-- <button class="toggleButton mx-2" id="muteBtn" onclick="toggleMute()"><i
-                    class="fa-regular fa-microphone"></i></button>
-            <button class="toggleButton mx-2" id="cameraBtn" onclick="toggleCamera()"><i
-                    class="fa-regular fa-camera"></i></button> --}}
-
             <!-- เปลี่ยนไมค์ ให้กดได้แค่ในคอม -->
 
                 <div id="div_for_AudioButton" class=" btnSpecial" >
@@ -133,7 +128,7 @@
                 </div>
         </div>
         <div class="right">
-
+            <div class="p-1 " style="color: #ffffff;" id="time_of_room"></div>
         </div>
     </div>
 
@@ -188,9 +183,6 @@
         // ใช้สำหรับ เช็คไม่ให้ฟังก์ชันออกห้องทำงานซ้ำ
         var leaveChannel = "false";
 
-        // เกี่ยวกับเวลาในห้อง
-        var check_start_timer_video_call = false;
-        var check_user_in_video_call = false;
         // var hours = 0;
         // var minutes = 0;
         // var seconds = 0;
@@ -201,6 +193,9 @@
 
         var checkHtml = false; // ใช้เช็คเงื่อนไขตัวปรับเสียงของ remote
 
+        //ใช้เช็คระดับเสียง
+        var check_start_volume_indicator = [];
+        var status_remote_volume = [];
 
         let channelParameters =
         {
@@ -257,7 +252,7 @@
                     // console.log( options['token']);
 
                     // ตั้งค่าเวลาหมดอายุของห้อง
-                    const expirationTimestamp = result['privilegeExpiredTs'];
+                    // const expirationTimestamp = result['privilegeExpiredTs'];
 
                      // ฟังก์ชันตรวจสอบเวลาหมดอายุแบบประหยัดทรัพยากร
                     function checkAndNotifyExpiration(expirationTimestamp) {
@@ -273,7 +268,7 @@
                             }, timeRemaining * 1000); // แปลงวินาทีเป็นมิลลิวินาที
                         }
                     }
-                    checkAndNotifyExpiration(expirationTimestamp); // เรียกใช้ฟังก์ชันนี้ครั้งเดียวหลังจากโหลด Token
+                    checkAndNotifyExpiration(600); // เรียกใช้ฟังก์ชันนี้ เมื่อครบ 10 นาที --> กดออกห้อง
 
                     //เริ่มทำการสร้าง channel Video_call
                     startBasicCall();
@@ -380,8 +375,8 @@
                 localPlayerContainer.classList.add('agora_create_local');
 
             if(user_data.photo){
-                // profile_local = "{{ url('/storage') }}" + "/" + user_data.photo;
-                profile_local = "https://www.viicheck.com/" + element.photo;
+                profile_local = "{{ url('/storage') }}" + "/" + user_data.photo;
+                // profile_local = "https://www.viicheck.com/" + element.photo;
             }else if(!user_data.photo && user_data.avatar){
                 profile_local = user_data.avatar;
             }else{
@@ -473,8 +468,6 @@
 
                             channelParameters.remoteVideoTrack.play(remotePlayerContainer[user.uid]);
 
-                            // Set a stream fallback option to automatically switch remote video quality when network conditions degrade.
-                            // agoraEngine.setStreamFallbackOption(channelParameters.remoteUid, 1);
                     })
                     .catch(error => {
                         console.log("โหลดข้อมูล RemoteUser ล้มเหลว published");
@@ -545,32 +538,341 @@
                     //         }
                     //     });
                     // })
+
                     status_remote_volume[user.uid] = "yes";
                     if (check_start_volume_indicator[user.uid] == "no") {
                         volume_indicator_remote(user.uid);
                     }
 
-                    // สร้าง function callback ที่จะใช้ในการประกาศตัวแปรเพื่อทำการ unsubscribe
-                    // function onVolumeIndicatorCallback(volume) {
-                    //     volume.forEach((volume, index) => {
-                    //         console.log("volume in published");
-                    //         if (channelParameters.remoteUid == volume.uid && volume.level > 50) {
-                    //             console.log(`${index} UID ${volume.uid} Level ${volume.level}`);
-                    //             document.querySelector('#statusMicrophoneOutput_remote_'+ channelParameters.remoteUid).classList.remove('d-none');
-                    //         } else if (channelParameters.remoteUid == volume.uid && volume.level <= 50) {
-                    //             console.log(`${index} UID ${volume.uid} Level ${volume.level}`);
-                    //             document.querySelector('#statusMicrophoneOutput_remote_'+ channelParameters.remoteUid).classList.add('d-none');
-                    //         }
-                    //     });
-                    // }
-
-                    // // Subscribe การเรียก callback function เมื่อเกิดเหตุการณ์ "volume-indicator"
-                    // agoraEngine.off("volume-indicator", onVolumeIndicatorCallback);
-                    // agoraEngine.on("volume-indicator", onVolumeIndicatorCallback);
                 }
 
             });
 
+            // Listen for the "user-unpublished" event.
+            agoraEngine.on("user-unpublished", async (user, mediaType) =>
+            {
+                // console.log("เข้าสู่ user-unpublished");
+                // console.log("agoraEngine");
+                // console.log(agoraEngine);
+
+                if(mediaType == "video"){
+                    if (user.hasVideo == false) {
+
+                        // console.log("สร้าง Div_Dummy ของ" + user.uid);
+                        // console.log(user);
+
+                        let name_remote_user_unpublished;
+                        let type_remote_user_unpublished;
+                        let profile_remote_user_unpublished;
+                        let hexcolor;
+                        fetch("{{ url('/') }}/api/get_remote_data" + "?user_id=" + user.uid + "&type=" + type_video_call + "&sos_id=" + sos_id)
+                            .then(response => response.json())
+                            .then(result => {
+                                // console.log("result");
+                                // console.log(result);
+
+                                hexcolor = result.hexcolor;
+                                name_remote_user_unpublished = result.name_user;
+                                type_remote_user_unpublished = result.user_type;
+
+                                if(result.photo){
+                                    profile_remote_user_unpublished = "{{ url('/storage') }}" + "/" + result.photo;
+                                }else if(!result.photo && result.avatar){
+                                    profile_remote_user_unpublished = result.avatar;
+                                }else{
+                                    profile_remote_user_unpublished = "https://www.viicheck.com/Medilab/img/icon.png";
+                                }
+                                // สำหรับ สร้าง div_dummy ตอนผู้ใช้ไม่ได้เปิดกล้อง
+                                create_dummy_videoTrack(user ,name_remote_user_unpublished ,type_remote_user_unpublished ,profile_remote_user_unpublished, hexcolor);
+
+                                // เปลี่ยน ไอคอนวิดีโอเป็น ปิด
+                                if(user.hasVideo == false){
+                                    // เปลี่ยน ไอคอนวิดีโอเป็น ปิด
+                                    document.querySelector('#camera_remote_' + user.uid).innerHTML = '<i class="fa-duotone fa-video-slash" style="--fa-primary-color: #ff0000; --fa-secondary-color: #ffffff; --fa-secondary-opacity: 1;"></i>';
+                                }else{
+                                    // เปลี่ยน ไอคอนวิดีโอเป็น เปิด
+                                    document.querySelector('#camera_remote_' + user.uid).innerHTML = '<i class="fa-solid fa-video"></i>';
+                                }
+
+                                if(user.hasAudio == false){
+                                    // เปลี่ยน ไอคอนไมโครโฟนเป็น ปิด
+                                    document.querySelector('#mic_remote_' + user.uid).innerHTML = '<i class="fa-duotone fa-microphone-slash" style="--fa-primary-color: #ff0000; --fa-secondary-color: #ffffff; --fa-secondary-opacity: 1;"></i>';
+                                }else{
+                                    // เปลี่ยน ไอคอนไมโครโฟนเป็น เปิด
+                                    document.querySelector('#mic_remote_' + user.uid).innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                                }
+
+                        })
+                        .catch(error => {
+                            console.log("โหลดข้อมูล RemoteUser ล้มเหลว");
+                        });
+
+                    }
+                }
+
+                if(mediaType == "audio"){
+                    // ตรวจจับเสียงพูดแล้ว สร้าง animation บนขอบ div
+                    console.log('unpublished AudioTrack:');
+                    console.log(channelParameters.localAudioTrack);
+
+                    status_remote_volume[user.uid] = "no";
+
+                    let type_of_microphone = "close";
+                    waitForElement_in_sidebar(type_of_microphone,user.uid); // รอจนกว่าจะมี icon ของไอดีนี้ใน sidebar และ เปลี่ยนไอคอน
+
+                    if(user.hasAudio == false){
+                        console.log("if unpublished");
+                        // เปลี่ยน ไอคอนไมโครโฟนเป็น ปิด
+                        document.querySelector('#mic_remote_' + user.uid).innerHTML = '<i class="fa-duotone fa-microphone-slash" style="--fa-primary-color: #ff0000; --fa-secondary-color: #ffffff; --fa-secondary-opacity: 1;"></i>';
+                    }else{
+                        console.log("else unpublished");
+                        // เปลี่ยน ไอคอนไมโครโฟนเป็น เปิด
+                        document.querySelector('#mic_remote_' + user.uid).innerHTML = '<i class="fa-solid fa-microphone"></i>';
+                    }
+
+                    // agoraEngine.on("volume-indicator", volumes => {
+                    //     volumes.forEach((volume, index) => {
+                    //         console.log("volume in unpublished");
+                    //         if (user.uid == volume.uid && volume.level > 50) {
+                    //             console.log(`${index} UID ${volume.uid} Level ${volume.level}`);
+                    //             document.querySelector('#statusMicrophoneOutput_remote_'+ user.uid).classList.remove('d-none');
+                    //         } else if (user.uid == volume.uid && volume.level <= 50) {
+                    //             console.log(`${index} UID ${volume.uid} Level ${volume.level}`);
+                    //             document.querySelector('#statusMicrophoneOutput_remote_'+ user.uid).classList.add('d-none');
+                    //         }
+                    //     });
+                    // })
+
+                }
+
+
+            });
+
+            // เมื่อมีคนเข้าห้อง
+            agoraEngine.on("user-joined", function (evt)
+            {
+                check_start_volume_indicator[evt.uid] = "no";
+
+                console.log("agoraEngine มีคนเข้าห้องมา");
+                console.log(agoraEngine);
+
+                // เสียงแจ้งเตือน เวลาคนเข้า
+                let audio_ringtone_join = new Audio("{{ asset('sound/join_room_1.mp3') }}");
+                    audio_ringtone_join.play();
+
+                // หยุดการเล่นเสียงหลังจาก 1 วินาที
+                setTimeout(function() {
+                    audio_ringtone_join.pause();
+                    audio_ringtone_join.currentTime = 0; // เริ่มเสียงใหม่เมื่อต้องการเล่นอีกครั้ง
+                }, 1000);
+
+                if(agoraEngine['remoteUsers'][0]){
+                    if( agoraEngine['remoteUsers']['length'] != 0 ){
+                        for(let c_uid = 0; c_uid < agoraEngine['remoteUsers']['length']; c_uid++){
+
+                            const dummy_remote = agoraEngine['remoteUsers'][c_uid];
+                            console.log(dummy_remote);
+
+                            if(dummy_remote['hasVideo'] == false){ //ถ้า remote คนนี้ ไม่ได้เปิดกล้องไว้ --> ไปสร้าง div_dummy
+                                let name_remote_user_joined;
+                                let type_remote_user_joined;
+                                let profile_remote_user_joined;
+                                let hexcolor;
+                                fetch("{{ url('/') }}/api/get_remote_data" + "?user_id=" + dummy_remote.uid + "&type=" + type_video_call + "&sos_id=" + sos_id)
+                                    .then(response => response.json())
+                                    .then(result => {
+                                        // console.log("result");
+                                        // console.log(result);
+                                        name_remote_user_joined = result.name_user;
+                                        type_remote_user_joined = result.user_type
+                                        hexcolor = result.hexcolor;
+                                        // hexcolor = "#2b2d26";
+                                        // name_remote_user_unpublished = "guest";
+                                        // type_remote_user_unpublished = "guest";
+                                        if(result.photo){
+                                            profile_remote_user_joined = "{{ url('/storage') }}" + "/" + result.photo;
+                                        }else if(!result.photo && result.avatar){
+                                            profile_remote_user_joined = result.avatar;
+                                        }else{
+                                            profile_remote_user_joined = "https://www.viicheck.com/Medilab/img/icon.png";
+                                        }
+
+                                        create_dummy_videoTrack(dummy_remote ,name_remote_user_joined ,type_remote_user_joined ,profile_remote_user_joined ,hexcolor);
+                                        console.log("Dummy Created !!!");
+
+                                        // สร้าง โปรไฟล์ใน sidebar =========== อยู่จนกว่าจะออกจากห้อง ======================
+
+                                        let create_profile_remote = document.createElement("div");
+                                            create_profile_remote.id = "profile_"+dummy_remote.uid;
+                                            create_profile_remote.classList.add('row');
+
+                                        let html_profile_user = create_profile_in_sidebar(dummy_remote ,name_remote_user_joined ,type_remote_user_joined ,profile_remote_user_joined,array_remoteVolumeAudio[dummy_remote.uid]);
+
+
+                                        create_profile_remote.innerHTML = html_profile_user;
+
+                                        // ตรวจสอบว่าเจอ div เดิมหรือไม่
+                                        let oldDiv = document.getElementById("profile_"+ dummy_remote.uid);
+                                        if (oldDiv) {
+                                            // ใช้ parentNode.replaceChild() เพื่อแทนที่ div เดิมด้วย div ใหม่
+                                            oldDiv.parentNode.replaceChild(create_profile_remote, oldDiv);
+                                        } else {
+                                            document.querySelector('#users_in_sidebar').appendChild(create_profile_remote);
+                                        }
+
+                                        // จบส่วน สร้าง โปรไฟล์ใน sidebar ===============================================
+
+                                        // เปลี่ยน ไอคอนวิดีโอเป็น ปิด
+                                        document.querySelector('#camera_remote_' + dummy_remote.uid).innerHTML = '<i class="fa-duotone fa-video-slash" style="--fa-primary-color: #ff0000; --fa-secondary-color: #ffffff; --fa-secondary-opacity: 1;"></i>';
+
+                                        //เช็คว่าไมค์ของเขาเปิดหรือไม่
+                                        if(dummy_remote['hasAudio'] == false){ //ถ้า remote คนนี้ ไม่ได้เปิดไมไว้ --> ไปสร้าง div_dummy
+                                            status_remote_volume[dummy_remote.uid] = "no";
+                                            // เปลี่ยน ไอคอนไมโครโฟนเป็น ปิด
+                                            document.querySelector('#mic_remote_' + dummy_remote.uid).innerHTML = '<i class="fa-duotone fa-microphone-slash" style="--fa-primary-color: #ff0000; --fa-secondary-color: #ffffff; --fa-secondary-opacity: 1;"></i>';
+                                        }else{
+                                            // เปลี่ยน ไอคอนไมโครโฟนเป็น เปิด
+                                            document.querySelector('#mic_remote_' + dummy_remote.uid).innerHTML = '<i class="fa-solid fa-microphone"></i>';
+
+                                            status_remote_volume[dummy_remote.uid] = "yes";
+                                            if (check_start_volume_indicator[dummy_remote.uid] == "no") {
+                                                volume_indicator_remote(dummy_remote.uid);
+                                            }
+
+                                        }
+
+                                        let type_of_microphone;
+                                        if (dummy_remote['hasAudio'] == false) {
+                                            type_of_microphone = "close";
+                                        } else {
+                                            type_of_microphone = "open";
+                                        }
+
+                                        waitForElement_in_sidebar(type_of_microphone,dummy_remote.uid); // รอจนกว่าจะมี icon ของไอดีนี้ใน sidebar
+                                        updateVideoVisibility(); // นับจำนวน video div ไม่ให้เกิน 9
+
+                                })
+                                .catch(error => {
+                                    console.log("โหลด เมื่อมีคนเข้าห้อง ล้มเหลว");
+                                });
+
+                            }
+
+                        }
+                    }
+                }
+
+                setTimeout(() => {
+
+                    fetch("{{ url('/') }}/api/check_status_room" + "?sos_id="+ sos_id + "&type=" + type_video_call)
+                        .then(response => response.json())
+                        .then(result => {
+                        // console.log("check_status_room user_join");
+                        // console.log(result);
+
+                        let member_in_room = JSON.parse(result['member_in_room']);
+                        // console.log(member_in_room.length);
+
+                        if(member_in_room.length >= 2){
+                            if(check_start_timer_video_call == false){
+                                start_timer_video_call();
+                            }else{
+                                clearInterval(loop_timer_video_call);
+                                document.getElementById("time_of_room").innerHTML = "";
+                                start_timer_video_call();
+                            }
+
+                            // if (check_user_in_video_call == false) {
+                            //     start_user_in_video_call(); // ทำฟังก์ชันเช็คคนที่ออกจากห้องไปแล้ว
+                            // }
+                        }
+                    });
+                }, 2000);
+
+            });
+
+            // ออกจากห้อง
+            agoraEngine.on("user-left", function (evt)
+            {
+
+                console.log("ไอดี : " + evt.uid + " ออกจากห้อง");
+
+                // ลบ videoDiv_ ที่อยู่ใน ห้องสนทนาออก
+                if(document.getElementById('videoDiv_' + evt.uid)) {
+                    document.getElementById('videoDiv_' + evt.uid).remove();
+                }
+
+                // ลบ โปรไฟล์ที่อยู่ใน sidebar เมื่อ ออก
+                if(document.getElementById('profile_' + evt.uid)) {
+                    document.getElementById('profile_' + evt.uid).remove();
+                }
+
+                updateVideoVisibility(); // นับจำนวน video div ไม่ให้เกิน 9
+
+                // เช็คว่ามี div .custom-div อยู่ใน div container_user_video_call
+                let container = document.getElementById("video-container");
+                let customDivs = container.querySelectorAll(".video-card");
+                //ถ้าไม่มีให้ ย้าย div ใน bar ข้างล่าง ขึ้นมาทั้งหมด
+                if (customDivs.length == 0) {
+                    moveAllDivsToContainer();
+                }
+
+                // เสียงแจ้งเตือน เวลาคนเข้า
+                let audio_ringtone_left = new Audio("{{ asset('sound/left_room_1.mp3') }}");
+                audio_ringtone_left.play();
+
+                // หยุดการเล่นเสียงหลังจาก 1 วินาที
+                setTimeout(function() {
+                    audio_ringtone_left.pause();
+                    audio_ringtone_left.currentTime = 0; // เริ่มเสียงใหม่เมื่อต้องการเล่นอีกครั้ง
+                }, 1000);
+
+                //=======================  Check Delete Member =========================
+
+                fetch("{{ url('/') }}/api/left_room" + "?user_id=" + evt.uid + "&type=" + type_video_call + "&sos_id=" + sos_id +"&meet_2_people=beforeunload"+"&leave=beforeunload")
+                    .then(response => response.text())
+                    .then(result => {
+                        console.log("result left_room :" + result);
+                        // OK
+                });
+
+                //=======================  Check Member And Stop Count Time =========================
+                setTimeout(() => {
+                    fetch("{{ url('/') }}/api/check_status_room" + "?sos_id="+ sos_id + "&type=" + type_video_call)
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log("result check_status_room");
+                            console.log(typeof result['member_in_room']);
+                            console.log(result['member_in_room']);
+
+                        let member_in_room = JSON.parse(result['member_in_room']);
+                        console.log(typeof member_in_room);
+
+                        // ถ้าผู้ใช้ เหลือ น้อยกว่า 2 คน ให้หยุดนับเวลา
+                        if(member_in_room.length < 2){
+                            console.log("member_in_room น้อยกว่า 2 --> user-left");
+                            if(check_start_timer_video_call == true){
+                                myStop_timer_video_call();
+                            }
+
+                            // if (check_user_in_video_call == true) {
+                            //     Stop_check_user_in_video_call();
+                            // }
+                        }
+                        // ถ้าผู้ใช้ เหลือ 0 คน ให้ทำลายห้องทิ้ง
+                        if(member_in_room.length < 1){
+                            setTimeout(() => {
+                                agoraEngine.destroy();
+                            }, 7000);
+                        }
+                    });
+                }, 3000);
+
+
+                console.log("agoraEngine ของ user-left");
+                console.log(agoraEngine);
+
+            });
 
             document.getElementById("join").onclick = async function (user_id)
             {
@@ -716,7 +1018,8 @@
                                 const result = await response.json();
                                 console.log("✅ Result from join_room:", result);
 
-
+                                // ✅ ตรวจสอบจำนวนสมาชิกในห้อง
+                                handleRoomMemberUpdate(result);
 
                             } catch (error) {
                                 console.error("❌ เกิดข้อผิดพลาดระหว่างการ Publish หรือ Update:", error);
@@ -727,16 +1030,16 @@
                         function handleRoomMemberUpdate(result) {
                             setTimeout(() => {
                                 if (result.length >= 2) {
-                                    if (!check_start_timer_video_call) {
-                                        // start_timer_video_call();
+                                    if (check_start_timer_video_call == false) {
+                                        start_timer_video_call();
                                     }
                                     // if (!check_user_in_video_call) {
                                     //     start_user_in_video_call();
                                     // }
                                 } else {
-                                    if (check_start_timer_video_call) {
-                                        console.log("⚠ สมาชิกในห้องน้อยกว่า 2, หยุด Timer");
-                                        // myStop_timer_video_call();
+                                    if (check_start_timer_video_call == true) {
+                                        // console.log("⚠ สมาชิกในห้องน้อยกว่า 2, หยุด Timer");
+                                        myStop_timer_video_call();
                                     }
                                     // if (check_user_in_video_call) {
                                     //     Stop_check_user_in_video_call();
@@ -758,9 +1061,6 @@
                         create_element_localvideo_call(localPlayerContainer, name_local, type_local, profile_local, bg_local);
                         // Play the local video track.
                         channelParameters.localVideoTrack.play(localPlayerContainer);
-
-                        // ✅ ตรวจสอบจำนวนสมาชิกในห้อง
-                        // handleRoomMemberUpdate(result);
 
                         //======= สำหรับ สร้างปุ่มที่ใช้ เปิด-ปิด กล้องและไมโครโฟน ==========//
                         btn_toggle_mic_camera(videoTrack,audioTrack,bg_local);
@@ -878,7 +1178,7 @@
                     console.log("user_id : "+user_id);
 
                     fetch("{{ url('/') }}/api/left_room" + "?user_id=" + user_id + "&type=" + type_video_call + "&sos_id=" + sos_id +"&meet_2_people=beforeunload"+"&leave=beforeunload")
-                        .then(response => response.json())
+                        .then(response => response.text())
                         .then(result => {
                             console.log(result);
                             console.log("left_and_update สำเร็จ");
@@ -1481,6 +1781,86 @@
             //=============================================================================//
 
 
+            //=================================== ฟังก์ชันเทสเสียง ==========================================//
+
+            let isIconVisible;
+            let volumeIndicatorHandler = volumes => {
+                volumes.forEach((volume) => {
+
+                    let localAudioTrackCheck = channelParameters.localAudioTrack;
+                    if (volume.level >= 50) {
+                        //แสดงชื่ออุปกรณ์ที่ใช้และระดับเสียง
+
+                        if (user_id == volume.uid && volume.level > 50) {
+                            console.log('Enabled Device: ' + localAudioTrackCheck['_deviceName']);
+                            console.log(`UID ${volume.uid} Level ${volume.level}`);
+
+                            // แสดงปุ่มเสียงพูด"
+                            if (!isIconVisible) {
+                                document.querySelector('#statusMicrophoneOutput_local').classList.remove('d-none');
+                                isIconVisible = true;
+                            }
+                        }
+
+                    } else {
+
+                        if (user_id == volume.uid && volume.level <= 50) {
+                            console.log('Enabled Device: ' + localAudioTrackCheck['_deviceName']);
+                            console.log(`UID ${volume.uid} Level ${volume.level}`);
+
+                            // ซ่อนปุ่มเสียงพูด"
+                            if (isIconVisible) {
+                                document.querySelector('#statusMicrophoneOutput_local').classList.add('d-none');
+                                isIconVisible = false;
+                            }
+
+                        }
+
+                    }
+                });
+            };
+
+
+            function SoundTest() {
+                // ตรวจจับเสียงพูดแล้ว สร้าง animation บนขอบ div
+                agoraEngine.off("volume-indicator", volumeIndicatorHandler);
+                agoraEngine.on("volume-indicator", volumeIndicatorHandler);
+            }
+
+            function volume_indicator_remote(remote_id){
+                console.log("ทำแล้วน้าาา volume_indicator_remote");
+                check_start_volume_indicator[remote_id] = "yes";
+
+                agoraEngine.on("volume-indicator", volumes => {
+                        volumes.forEach((volume, index) => {
+                            console.log("เข้า foreach");
+                            console.log(volume.uid);
+                            if (remote_id == volume.uid && status_remote_volume[remote_id] == "yes") {
+                                if (volume.level > 50) {
+                                    console.log(`Dummy_UID ${volume.uid} Level ${volume.level}`);
+                                    document.querySelector('#statusMicrophoneOutput_remote_'+remote_id).classList.remove('d-none');
+                                } else if (volume.level <= 50) {
+                                    console.log(`Dummy_UID ${volume.uid} Level ${volume.level}`);
+                                    document.querySelector('#statusMicrophoneOutput_remote_'+remote_id).classList.add('d-none');
+                                }
+                            }else if(remote_id == volume.uid && status_remote_volume[remote_id] == "no") {
+                                console.log("else ล่างสุด");
+                                document.querySelector('#statusMicrophoneOutput_remote_'+remote_id).classList.add('d-none');
+                            }
+
+                            // if (remote_id == volume.uid && volume.level > 50) {
+                            //     console.log(`Dummy_UID ${volume.uid} Level ${volume.level}`);
+                            //     document.querySelector('#statusMicrophoneOutput_remote_'+remote_id).classList.remove('d-none');
+                            // } else if (remote_id == volume.uid && volume.level <= 50) {
+                            //     console.log(`Dummy_UID ${volume.uid} Level ${volume.level}`);
+                            //     document.querySelector('#statusMicrophoneOutput_remote_'+remote_id).classList.add('d-none');
+                            // }
+
+                        });
+                    })
+            }
+
+
 
         }
     </script>
@@ -1492,6 +1872,7 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const mainContainer = document.getElementById('mainContainer');
+            const videoWrapper = document.querySelector('.video-wrapper');  // เรียกใช้ video-wrapper
 
             sidebarOpen = !sidebarOpen;
 
@@ -1503,7 +1884,6 @@
                 mainContainer.classList.remove('shifted');
             }
         }
-
 
         // ฟังก์ชันสุ่มสี HEX
         function getRandomColor() {
@@ -1605,7 +1985,7 @@
                 document.getElementById("video-container").appendChild(newDiv);
             }
 
-            updateVideoVisibility();
+            updateVideoVisibility(); // นับจำนวน video div ไม่ให้เกิน 9
         }
 
         function updateVideoVisibility() { // นับจำนวน video div ไม่ให้เกิน 9
@@ -1706,6 +2086,140 @@
 
         //======================================= จบโยกย้าย Div   ==================================================//
 
+        function myStop_timer_video_call() {
+            console.log("เข้ามาหยุด myStop_timer_video_call");
+            setTimeout(() => {
+                clearInterval(loop_timer_video_call);
+                check_start_timer_video_call = false;
+
+                document.getElementById("time_of_room").innerHTML = "";
+                // document.getElementById("time_of_room").classList.add('d-none');
+            }, 3000);
+
+        }
+        var audio_in_room = new Audio("{{ asset('sound/แจ้งเตือนก่อนหมดเวลาวิดีโอคอล.mp3') }}");
+
+        function start_timer_video_call(){
+
+            console.log('start_timer_video_call');
+            // console.log(time_start);
+
+            check_start_timer_video_call = true ;
+
+            setTimeout(() => {
+
+                // let time_of_room = document.getElementById("time_of_room");
+                //     time_of_room.classList.remove('d-none');
+
+                fetch("{{ url('/') }}/api/check_status_room" + "?sos_id="+ sos_id + "&type=" + type_video_call)
+                    .then(response => response.json())
+                    .then(result => {
+
+                        // วันที่และเวลาที่กำหนด
+                        let targetDate = '';
+                        if (result['than_2_people_time_start']) {
+                            targetDate = new Date(result['than_2_people_time_start']);
+                        } else {
+                            // targetDate = new Date(result['than_2_people_time_start']);
+                            targetDate = new Date();
+                        }
+
+                        let targetTime = targetDate.getTime();
+
+                        loop_timer_video_call = setInterval(function() {
+
+                            // วันที่และเวลาปัจจุบัน
+                            let currentDate = new Date();
+                            let currentTime = currentDate.getTime();
+
+                            // คำนวณเวลาที่ผ่านไปในมิลลิวินาที
+                            let elapsedTime = currentTime - targetTime;
+                            let elapsedMinutes = Math.floor(elapsedTime / (1000 * 60));
+
+                            // แปลงเวลาที่ผ่านไปให้เป็นรูปแบบชั่วโมง:นาที:วินาที
+                            let hours = Math.floor(elapsedMinutes / 60);
+                            let minutes = elapsedMinutes % 60;
+                            let seconds = Math.floor((elapsedTime / 1000) % 60);
+
+                            let minsec = minutes + '.' + seconds;
+                            let showTimeCountVideo;
+                            // แสดงผลลัพธ์
+                            let max_minute_time = 8;
+
+                            // let remain_time = max_minute_time - 1;
+                            // let time_warning = "";
+                            // if (max_minute_time > 1) {
+                            //     time_warning = (max_minute_time - remain_time);
+                            // }else{
+                            //     time_warning = "น้อยกว่า 1";
+                            // }
+
+                            if (hours > 0) {
+                                if (minutes < 10) {  // ใส่ 0 ข้างหน้า นาที กรณีเลขยังไม่ถึง 10
+                                    showTimeCountVideo = hours + ':' + '0' + minutes + ':' + seconds + `&nbsp;/ `+max_minute_time+` นาที`;
+                                }else{
+                                    showTimeCountVideo = hours + ':' + minutes + ':' + seconds + `&nbsp;/ `+max_minute_time+` นาที`;
+                                }
+                            } else {
+                                if(seconds < 10){  // ใส่ 0 ข้างหน้า วินาที กรณีเลขยังไม่ถึง 10
+                                    showTimeCountVideo =  minutes + ':' + '0' + seconds + `&nbsp;/ `+max_minute_time+` นาที`;
+                                }else{
+                                    showTimeCountVideo = minutes + ':' + seconds + `&nbsp;/ `+max_minute_time+` นาที`;
+                                }
+                            }
+
+                            // // อัปเดตข้อความใน div ที่มี id เป็น timeCountVideo
+                            time_of_room.innerHTML = '<i class="fa-regular fa-clock fa-fade" style="color: #11b06b; font-size: 16px;"></i>&nbsp;' + ": " + showTimeCountVideo;
+
+                            if (minsec == 5.00) {
+                                audio_in_room.play();
+                                let alert_warning = document.querySelector('#alert_warning')
+                                alert_warning.style.display = 'block'; // แสดง .div_alert
+
+                                // document.querySelector('#alert_text').innerHTML = `เหลือเวลา `+ time_warning +` นาที`;
+                                document.querySelector('#alert_text').innerHTML = `เหลือเวลา 3 นาที`;
+                                alert_warning.classList.add('up_down');
+
+                                const animated = document.querySelector('.up_down');
+                                animated.onanimationend = () => {
+                                    document.querySelector('#alert_warning').classList.remove('up_down');
+                                    let alert_warning = document.querySelector('#alert_warning')
+                                    alert_warning.style.display = 'none'; // แสดง .div_alert
+                                };
+                            }
+
+                            if (minsec == 7.00) {
+                                audio_in_room.play();
+                                let alert_warning = document.querySelector('#alert_warning')
+                                alert_warning.style.display = 'block'; // แสดง .div_alert
+
+                                // document.querySelector('#alert_text').innerHTML = `เหลือเวลา `+ time_warning +` นาที`;
+                                document.querySelector('#alert_text').innerHTML = `เหลือเวลา 1 นาที`;
+                                alert_warning.classList.add('up_down');
+
+                                const animated = document.querySelector('.up_down');
+                                animated.onanimationend = () => {
+                                    document.querySelector('#alert_warning').classList.remove('up_down');
+                                    let alert_warning = document.querySelector('#alert_warning')
+                                    alert_warning.style.display = 'none'; // แสดง .div_alert
+                                };
+                            }
+
+                            if (elapsedMinutes == max_minute_time) {
+                                document.querySelector('#leave').click();
+                            }
+
+                        }, 1000);
+
+
+                    });
+            }, 2000);
+
+        }
+
+
+        //============================== บันทึกข้อมูลเมื่อออกแบบรวดเร็ว ==================================
+
         window.addEventListener('beforeunload', function(event) {
             if (leaveChannel == "false") {
                 // leaveChannel();
@@ -1723,10 +2237,5 @@
         });
 
     </script>
-
-
-
-
-
 
 @endsection

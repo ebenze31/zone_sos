@@ -25,4 +25,4 @@ Route::get('/get_local_data', 'VideoCallController@get_local_data');
 Route::get('/get_remote_data', 'VideoCallController@get_remote_data');
 Route::get('/join_room', 'VideoCallController@join_room');
 Route::get('/left_room', 'VideoCallController@left_room');
-
+Route::get('/check_status_room', 'VideoCallController@check_status_room');

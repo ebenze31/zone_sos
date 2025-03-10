@@ -13,12 +13,12 @@ html {
     position: relative;
     height: calc(100vh - 90px);
     width: 100%;
-    max-width: 100%;
+    max-width: 87%;
     padding-right: var(--bs-gutter-x, 0.75rem);
     padding-left: var(--bs-gutter-x, 0.75rem);
     margin-right: auto;
     margin-left: auto;
-    transition: margin-left 0.4s ease, width 0.4s ease;
+    transition: margin-left 0.2s ease, margin-right 0.2s ease;
     min-height: 0;
     margin-top: 0.5rem;
 }
@@ -234,7 +234,7 @@ html {
 
 /* ปรับขนาด video card ให้อยู่ใน bar โดยไม่ให้เกินขอบ */
 .video-bar .video-card {
-    position: relative;
+    position: relative !important;
     width: min(150px, 15%);
     height: auto;
     aspect-ratio: 3 / 2;
@@ -355,24 +355,11 @@ html {
     transition: transform 0.3s ease-in-out;
 }
 
-.video-bar .video-card .infomation-user{
-    transform: scale(0.6);
-    margin: 0;
-    bottom: -12px;
-    right: -30px;
-    font-size: 1.3em;
-    font-weight: bold;
-    /* word-wrap: break-word; */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: calc(100%);
-}
-
 .video-card .status-sound-output{
     position: absolute;
     top: 0;
     left: 0;
+    margin: 5px;
     display: flex;
 }
 
@@ -380,26 +367,9 @@ html {
     position: absolute;
     top: 0;
     right: 0;
+    margin: 5px;
     display: flex;
     z-index: 4;
-}
-
-.video-card .infomation-user{
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    background-color: rgba(132, 136, 140 , 0.8);
-    padding: .5rem 1rem;
-    border-radius: 10px;
-    margin: 1rem;
-    color: #ffffff !important;
-    font-size: 1em;
-    font-weight: bold;
-    /* word-wrap: break-word; */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: calc(100% - 10%);
 }
 
 .infomation-user .role-user-video-call ,.infomation-user .name-user-video-call{
@@ -423,31 +393,99 @@ html {
     z-index: 4;
 }
 
-.video-bar .video-card {
+/* =========================== โปรไฟล์ , ชื่อ , ไอคอน ใน video-container และ video-bar ===================================*/
+.video-container .video-card .infomation-user{
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: rgba(132, 136, 140 , 0.8);
+    padding: .5rem 1rem;
     border-radius: 10px;
-}
-
-.video-bar .video-card .infomation-user{
-    transform: scale(0.6);
-    margin: 0;
-    bottom: -12px;
-    right: -30px;
-    font-size: 1.3em;
+    /* margin: 1rem; */
+    color: #ffffff !important;
+    font-size: 1em;
     font-weight: bold;
     /* word-wrap: break-word; */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: calc(100%);
+    max-width: calc(100% - 10%);
+}
+
+.video-container .video-card div {
+    border-radius: 5px;
+}
+.video-container .video-card div div{
+    border-radius: 5px;
+}
+
+#video-container div div .profile_image{ /* ของ container ใหญ่ */
+    width: 150px;
+    height: 150px;
+    border-radius: 50%; /* คงรูปร่างวงกลม */
+    object-fit: cover;
+    pointer-events: none;
+}
+
+/* -------------------- ใน video-bar -------------------------------------*/
+
+
+.video-bar .video-card div {
+    border-radius: 5px;
+}
+.video-bar .video-card div div{
+    border-radius: 5px;
+}
+
+.video-bar .video-card .infomation-user {
+    position: absolute;
+    left: 5px; /* เปลี่ยนจาก -12px เป็น 0 */
+    bottom: 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 10%); /* ปรับให้กว้างขึ้นเพื่อชดเชยการ scale */
+    z-index: 4;
+    padding: .2rem .5rem;
+    border-radius: 5px;
+    background-color: rgba(132, 136, 140 , 0.8);
+    color: #ffffff !important;
+
 }
 
 .video-bar .video-card .status-input-output{
-    transform: scale(0.7);
+    transform: scale(0.6);
     margin: 0;
-    top: -3px;
-    right: -10px;
+    top: -9px;
+    right: -22px;
     z-index: 4;
 }
+
+
+
+.video-bar div div .profile_image{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+/* ซ่อน ไอคอน ไมและกล้อง ตอนอยู่แถบเล็ก */
+/* .video-bar div .status-input-output{
+    display: none;
+} */
+
+/* ซ่อน ชื่อและ role ตอนอยู่แถบเล็ก */
+/* .video-bar div .infomation-user{
+    display: none;
+} */
+
+/* =========================== จบ Profile ใน sidebar ===========================
+
+
 
 
 /* =================ตัว loading animation==================== */
@@ -675,26 +713,13 @@ html {
 
 /* -------------------------- จบ ฟังก์ชัน เปลี่ยนไมค์และกล้อง -------------------------------------*/
 
-/* -------------------------- Profile ใน container -------------------------------------*/
-
-.video-bar div div .profile_image{ /* ของ bar ล่าง  */
-    width: 50px;
-    height: 50px;
-    border-radius: 50%; /* คงรูปร่างวงกลม */
-    object-fit: cover;
-    pointer-events: none;
-}
-
-#video-container div div .profile_image{ /* ของ container ใหญ่ */
-    width: 150px;
-    height: 150px;
-    border-radius: 50%; /* คงรูปร่างวงกลม */
-    object-fit: cover;
-    pointer-events: none;
-}
-/* -------------------------- จบ Profile ใน sidebar -------------------------------------*/
-
 /* -------------------------- Profile ใน sidebar -------------------------------------*/
+.users_in_sidebar{
+    margin: 10px;
+    background-color: #ffffff;
+    border-radius: 3px;
+    padding: 5px;
+}
 .profile-picture {
     border: none;
     border-radius: 50%;
@@ -722,5 +747,100 @@ html {
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
+}
+
+/* css ของ dropdown remote volume */
+.dropdown_volume {
+    text-decoration: none;
+    color: #000000;
+}
+
+.dropdown_volume:hover {
+    color: #222222
+}
+
+/* Dropdown */
+
+.dropdown_volume_label {
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+}
+
+.dd-button {
+    display: inline-block;
+    border: 1px solid gray;
+    border-radius: 4px;
+    /* padding: 10px 30px 10px 20px; */
+    background-color: #ffffff;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.dd-button:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 15px;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid black;
+}
+
+.dd-button:hover {
+    background-color: #eeeeee;
+}
+
+
+.dd-input {
+    display: none;
+}
+
+.dd-menu {
+    position: absolute;
+    top: 100%;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0;
+    margin: 2px 0 0 0;
+    box-shadow: 0 0 6px 0 rgba(0,0,0,0.1);
+    background-color: #ffffff;
+    list-style-type: none;
+    width: 150px;
+    right: 0;
+    z-index: 5;
+}
+
+.dd-input + .dd-menu {
+    display: none;
+}
+
+.dd-input:checked + .dd-menu {
+    display: block;
+}
+
+.dd-menu li {
+    position: relative;
+    padding: 10px 20px;
+    cursor: default;
+    white-space: nowrap;
+}
+
+.dd-menu li:hover {
+    background-color: hsl(0, 0%, 96%);
+}
+
+.dd-menu li a {
+    display: block;
+    margin: -10px -20px;
+    padding: 10px 20px;
+}
+
+.dd-menu li.divider{
+    padding: 0;
+    border-bottom: 1px solid #cccccc;
 }
 /* -------------------------- จบ Profile ใน sidebar -------------------------------------*/
