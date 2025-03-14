@@ -74,63 +74,51 @@
 /* โหมดมือถือ */
     {
     .text_for_device {
-        font-size: 2em;
+        font-size: 1em;
     }
 
-    .toggleCameraButton {
-        border-radius: 50%;
-        width: 120px !important;
-        height: 120px !important;
-        border: 1px solid rgb(4, 80, 20);
-        background-color: rgba(68, 230, 116, 0.6);
-        color: #ffffff;
-    }
-
+    .toggleCameraButton,
     .toggleMicrophoneButton {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         border-radius: 50%;
-        width: 120px !important;
-        height: 120px !important;
+        width: 50px !important;
+        height: 50px !important;
         border: 1px solid rgb(4, 80, 20);
         background-color: rgba(68, 230, 116, 0.6);
         color: #ffffff;
     }
+
 
     .toggleCameraButton i {
-        font-size: 50px;
+        font-size: 20px;
     }
 
     .toggleMicrophoneButton i {
-        font-size: 50px;
+        font-size: 20px;
     }
 
     .avatar {
         display: inline-block;
         border-radius: 50%;
-        /* ให้ครึ่งขนาดของ width */
         overflow: hidden;
-        width: 75px;
-        /* กำหนด width เป็น 75px */
-        height: 75px;
-        /* กำหนด width เป็น 75px */
+        width: 37.5px;  /* ลดจาก 75px -> 37.5px */
+        height: 37.5px; /* ลดจาก 75px -> 37.5px */
     }
 
     .avatar:not(:first-child) {
-        margin-left: -37.5px;
-        /* ให้ครึ่งขนาดของ width */
-        -webkit-mask: radial-gradient(circle 33.75px at 3.75px 50%, transparent 99%, #fff 100%);
-        /* ให้ครึ่งขนาดของ width */
-        mask: radial-gradient(circle 33.75px at 3.75px 50%, transparent 99%, #fff 100%);
-        /* ให้ครึ่งขนาดของ width */
+        margin-left: -18.75px; /* ลดจาก -37.5px -> -18.75px */
+        -webkit-mask: radial-gradient(circle 16.875px at 1.875px 50%, transparent 99%, #fff 100%);
+        mask: radial-gradient(circle 16.875px at 1.875px 50%, transparent 99%, #fff 100%);
     }
-
 
     .avatar img {
         width: 100%;
-        /* ขนาดเต็มของพื้นที่ */
         height: 100%;
         object-fit: cover;
-        /* แสดงภาพโดยคงสัดส่วนและไม่ตัดขอบ */
     }
+
 
 }
 
@@ -216,7 +204,10 @@
 .buttonDiv {
     position: absolute;
     bottom: 15px;
+    display: flex;
+    gap: 5px;
 }
+
 
 /*==============  เสียง ลำโพลง CSS ==================*/
 .soundTest {

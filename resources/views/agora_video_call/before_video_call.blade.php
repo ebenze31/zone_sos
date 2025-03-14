@@ -73,10 +73,11 @@
                 <div class="col-12 col-sm-12 col-lg-3  d-flex justify-content-center p-3 align-items-center">
                     <div id="before_join_message" class="text-center w-100">
                         @if ($type_brand == 'pc')
-                            @if ($type == 'sos_1669' || $type == 'user_sos_1669')
+                            @if ($type == 'zone_sos')
                                 @php
-                                    $data_sos_1669 = App\Models\Sos_help_center::where('id', $sos_id)->first();
+                                    $data_sos_1669 = DB::table('zone_sos_help_centers')->where('id', $sos_id)->first();
                                 @endphp
+
 
                                 @if ($user->role == 'partner')
                                     @if (!empty($data_sos_1669->code_for_officer))
@@ -111,24 +112,25 @@
                             <a id="full_room" class="btn btn-secondary d-none"
                                 onclick="AlertPeopleInRoom()">ห้องนี้ถึงจำนวนผู้ใช้สูงสุดแล้ว</a>
                         @else
-                            @if ($type == 'sos_1669' || $type == 'user_sos_1669')
+                            @if ($type == 'zone_sos')
                                 @php
-                                    $data_sos_1669 = App\Models\Sos_help_center::where('id', $sos_id)->first();
+                                    $data_sos_1669 = DB::table('zone_sos_help_centers')->where('id', $sos_id)->first();
                                 @endphp
+
 
                                 @if ($user->role == 'partner')
                                     @if (!empty($data_sos_1669->code_for_officer))
-                                        <h1 class="w-100 font-weight-bold">ห้องสนทนา :
-                                            {{ $data_sos_1669->code_for_officer }}</h1>
+                                        <h3 class="w-100 font-weight-bold">ห้องสนทนา :
+                                            {{ $data_sos_1669->code_for_officer }}</h3>
                                     @else
-                                        <h1 class="w-100 font-weight-bold">ห้องสนทนา : {{ $data_sos_1669->operating_code }}
-                                        </h1>
+                                        <h3 class="w-100 font-weight-bold">ห้องสนทนา : {{ $data_sos_1669->operating_code }}
+                                        </h3>
                                     @endif
                                 @else
-                                    <h1 class="w-100 font-weight-bold">ห้องสนทนา : {{ $data_sos_1669->operating_code }}</h1>
+                                    <h3 class="w-100 font-weight-bold">ห้องสนทนา : {{ $data_sos_1669->operating_code }}</h3>
                                 @endif
                             @else
-                                <h1 class="w-100 font-weight-bold">ห้องสนทนา : </h1>
+                                <h3 class="w-100 font-weight-bold">ห้องสนทนา : </h3>
                             @endif
                             <div id="avatars" class="avatars">
                                 {{-- <span class="avatar">
@@ -141,15 +143,15 @@
                                 <img src="https://picsum.photos/90">
                             </span> --}}
                             </div>
-                            <div id="text_user_in_room" class="mt-2">
+                            <div id="text_user_in_room" class="mt-2 h6">
                                 <!-- สำหรับใส่ text ที่บอกคนในห้อง-->
                             </div>
-
-                            <a style="font-size: 40px; border-radius: 10px;" id="btnJoinRoom" class="btn btn-success d-none"
+                            <br>
+                            <a style="font-size: 20px; border-radius: 10px;" id="btnJoinRoom" class="btn btn-success d-none"
                                 href="">
                                 เข้าร่วมห้องสนทนา
                             </a>
-                            <a style="font-size: 40px; border-radius: 10px;" id="full_room" class="btn btn-secondary d-none"
+                            <a style="font-size: 20px; border-radius: 10px;" id="full_room" class="btn btn-secondary d-none"
                                 onclick="AlertPeopleInRoom()">ห้องนี้ถึงจำนวนผู้ใช้สูงสุดแล้ว</a>
 
                         @endif
